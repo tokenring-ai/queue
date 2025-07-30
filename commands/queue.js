@@ -45,7 +45,7 @@ export async function execute(remainder, registry) {
 		case "remove": {
 			const idx = Number.parseInt(args[0], 10);
 
-			if (isNaN(idx) || idx < 0 || idx >= workQueueService.size()) {
+			if (Number.isNaN(idx) || idx < 0 || idx >= workQueueService.size()) {
 				chatService.errorLine(
 					"Usage: /queue remove <index>  (index starts from 0)",
 				);
@@ -61,7 +61,7 @@ export async function execute(remainder, registry) {
 		case "details": {
 			const idx = Number.parseInt(args[0], 10);
 
-			if (isNaN(idx) || idx < 0 || idx >= workQueueService.size()) {
+			if (Number.isNaN(idx) || idx < 0 || idx >= workQueueService.size()) {
 				chatService.errorLine(
 					"Usage: /queue details <index>  (index starts from 0)",
 				);

@@ -45,7 +45,7 @@ export default class WorkQueueService extends Service {
 	 * @property {boolean} active - Whether the service is active.
 	 * @property {string} service - The name of the service.
 	 */
-	async status(registry) {
+	async status(_registry) {
 		return {
 			active: true,
 			service: "WorkQueueService",
@@ -57,7 +57,7 @@ export default class WorkQueueService extends Service {
 	 * @param {TokenRingRegistry} registry
 	 * @returns {void}
 	 */
-	start(registry) {
+	start(_registry) {
 		this._started = true;
 	}
 

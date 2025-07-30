@@ -5,7 +5,6 @@ import WorkQueueService from "./WorkQueueService.js";
 // Mock dependencies
 vi.mock("@token-ring/chat/resources/ChatCommandRegistry", () => ({
 	default: class MockChatCommandService {
-		constructor() {}
 		commands = new Map();
 
 		registerCommand = vi.fn((name, command) => {
