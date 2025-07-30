@@ -1,8 +1,8 @@
+import { ChatMessageStorage } from "@token-ring/ai-client";
+import runChat from "@token-ring/ai-client/runChat";
 import ChatService from "@token-ring/chat/ChatService";
 import * as checkpoint from "@token-ring/history/commands/checkpoint";
-import runChat from "@token-ring/ai-client/runChat";
 import WorkQueueService from "../WorkQueueService.js";
-import { ChatMessageStorage } from "@token-ring/ai-client";
 
 /**
  * /queue add|remove|clear|list|run <args>
@@ -43,7 +43,7 @@ export async function execute(remainder, registry) {
 			break;
 		}
 		case "remove": {
-			const idx = parseInt(args[0], 10);
+			const idx = Number.parseInt(args[0], 10);
 
 			if (isNaN(idx) || idx < 0 || idx >= workQueueService.size()) {
 				chatService.errorLine(
@@ -59,7 +59,7 @@ export async function execute(remainder, registry) {
 		}
 
 		case "details": {
-			const idx = parseInt(args[0], 10);
+			const idx = Number.parseInt(args[0], 10);
 
 			if (isNaN(idx) || idx < 0 || idx >= workQueueService.size()) {
 				chatService.errorLine(

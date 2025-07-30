@@ -1,7 +1,7 @@
-import ChatService from "@token-ring/chat/ChatService";
-import WorkQueueService from "../WorkQueueService.js";
 import ChatMessageStorage from "@token-ring/ai-client/ChatMessageStorage";
+import ChatService from "@token-ring/chat/ChatService";
 import { z } from "zod";
+import WorkQueueService from "../WorkQueueService.js";
 
 /**
  * Adds a task to the work queue for later execution
