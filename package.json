@@ -14,8 +14,13 @@
 	},
 	"license": "MIT",
 	"scripts": {
+		"build": "tsc -p .",
 		"lint": "eslint ",
 		"eslint": "eslint --fix ./"
+	},
+	"types": "./index.d.ts",
+	"devDependencies": {
+		"typescript": "^5.6.3"
 	},
 	"type": "module"
 }
