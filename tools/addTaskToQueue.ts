@@ -1,17 +1,20 @@
 import ChatMessageStorage from "@token-ring/ai-client/ChatMessageStorage";
 import ChatService from "@token-ring/chat/ChatService";
 import { z } from "zod";
-import WorkQueueService from "../WorkQueueService.js";
+import WorkQueueService from "../WorkQueueService.ts";
 
 /**
  * Adds a task to the work queue for later execution
- * @param {object} args
- * @param {string} args.description - A short description of the task to be performed
- * @param {string} args.content - The detailed task description in natural language
- * @param {TokenRingRegistry} registry - The package registry
- * @returns {Promise<object>} Result containing queue status and message
+ * @param args Object containing the task description and content
+ * @param args.description A short description of the task to be performed
+ * @param args.content The detailed task description in natural language
+ * @param registry The package registry
+ * @returns Result containing queue status and message
  */
-export async function execute({ description, content }, registry) {
+export async function execute(
+	{ description, content }: { description: string; content: string },
+	registry: TokenRingRegistry,
+): Promise<object> {
 	const chatService = registry.requireFirstServiceByType(ChatService);
 	const chatMessageStorage =
 		registry.requireFirstServiceByType(ChatMessageStorage);
@@ -32,7 +35,7 @@ export async function execute({ description, content }, registry) {
 }
 
 export const description =
-	"Adds a task to the queue for later execution by the system.";
+	"Adds a task to the queue for later execution by the system." as const;
 
 export const parameters = z.object({
 	description: z

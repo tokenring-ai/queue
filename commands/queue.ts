@@ -2,7 +2,8 @@ import { ChatMessageStorage } from "@token-ring/ai-client";
 import runChat from "@token-ring/ai-client/runChat";
 import ChatService from "@token-ring/chat/ChatService";
 import * as checkpoint from "@token-ring/history/commands/checkpoint";
-import WorkQueueService from "../WorkQueueService.js";
+import WorkQueueService from "../WorkQueueService.ts";
+import {abandon} from "@token-ring/utility/abandon";
 
 /**
  * /queue add|remove|clear|list|run <args>
@@ -10,9 +11,12 @@ import WorkQueueService from "../WorkQueueService.js";
  * Queue is stored on state.queue as an array of prompt strings.
  */
 
-export const description = "/queue <command> - Manage a queue of chat prompts";
+export const description = "/queue <command> - Manage a queue of chat prompts" as const;
 
-export async function execute(remainder, registry) {
+export async function execute(
+	remainder: any,
+	registry: TokenRingRegistry,
+): Promise<void> {
 	const chatService = registry.requireFirstServiceByType(ChatService);
 	const chatMessageStorage =
 		registry.requireFirstServiceByType(ChatMessageStorage);
@@ -87,7 +91,7 @@ export async function execute(remainder, registry) {
 				return;
 			}
 			chatService.systemLine("Queue contents:");
-			workQueueService.getAll().forEach(({ name }, i) => {
+			workQueueService.getAll().forEach(({ name }: any, i: number) => {
 				chatService.systemLine(`[${i}] ${name}`);
 			});
 			break;
@@ -109,7 +113,7 @@ export async function execute(remainder, registry) {
 			workQueueService.setInitialMessage(
 				chatMessageStorage.getCurrentMessage(),
 			);
-			workQueueService.start();
+			abandon(workQueueService.start());
 
 			await checkpoint.execute("create Start of queue operation", registry);
 			chatService.systemLine(
@@ -137,7 +141,7 @@ export async function execute(remainder, registry) {
 				chatMessageStorage.setCurrentMessage(
 					workQueueService.getInitialMessage(),
 				);
-				workQueueService.stop();
+				abandon(workQueueService.stop());
 				if (action === "done") {
 					chatService.systemLine("Restored chat state to preserved state.");
 				} else {
@@ -204,10 +208,11 @@ export async function execute(remainder, registry) {
 					{
 						systemPrompt: chatMessageStorage.getInstructions(),
 						input,
+						model: "auto",
 					},
 					registry,
 				);
-			} catch (error) {
+			} catch (error: any) {
 				chatService.errorLine(
 					`Error running queued prompt: ${error.message || error}`,
 				);
@@ -216,12 +221,12 @@ export async function execute(remainder, registry) {
 		}
 
 		default: {
-			this.help(chatService);
+			help();
 		}
 	}
 }
 
-export function help() {
+export function help(): string[] {
 	return [
 		"/queue [add|remove|clear|list|run|start|next|skip|done] [args...]",
 		"  - With no arguments: shows command help",

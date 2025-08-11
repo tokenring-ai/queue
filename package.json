@@ -4,19 +4,19 @@
 	"dependencies": {
 		"@token-ring/ai-client": "0.1.0",
 		"@token-ring/chat": "0.1.0",
-		"@token-ring/eslint-config": "0.0.0",
+
 		"@token-ring/history": "0.1.0",
 		"@token-ring/registry": "0.1.0"
 	},
 	"exports": {
-		".": "./index.js",
-		"./*": "./*.js"
+		".": "./index.ts",
+		"./*": "./*.ts"
 	},
 	"license": "MIT",
 	"scripts": {
-		"build": "tsc -p .",
-		"lint": "eslint ",
-		"eslint": "eslint --fix ./"
+		"build": "tsc -p ."
+
+
 	},
 	"types": "./index.d.ts",
 	"devDependencies": {

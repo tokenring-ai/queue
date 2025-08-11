@@ -1,6 +1,6 @@
 import ChatCommandRegistry from "@token-ring/registry/ChatCommandRegistry.js";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import WorkQueueService from "./WorkQueueService.js";
+import WorkQueueService from "../WorkQueueService.js";
 
 // Mock dependencies
 vi.mock("@token-ring/chat/resources/ChatCommandRegistry", () => ({
