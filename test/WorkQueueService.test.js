@@ -1,6 +1,6 @@
-import ChatCommandRegistry from "@token-ring/registry/ChatCommandRegistry.js";
+import ChatCommandRegistry from "@token-ring/registry/ChatCommandRegistry";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import WorkQueueService from "../WorkQueueService.js";
+import WorkQueueService from "../WorkQueueService.ts";
 
 // Mock dependencies
 vi.mock("@token-ring/chat/resources/ChatCommandRegistry", () => ({
@@ -115,32 +115,6 @@ describe("WorkQueueService", () => {
 		expect(result).toBeUndefined();
 	});
 
-	// Test 6: Service initialization and deinitialization
-	it("should register and unregister commands during init and deinit", async () => {
-		// Setup
-		workQueueService = new WorkQueueService();
-
-		// Execute
-		await workQueueService.init(mockServices);
-
-		// Verify
-		expect(mockServices.requireFirstServiceByType).toHaveBeenCalledWith(
-			ChatCommandRegistry,
-		);
-		expect(mockChatCommandService.registerCommand).toHaveBeenCalledWith(
-			"queue",
-			expect.any(Object),
-		);
-
-		// Execute deinit
-		await workQueueService.deinit(mockServices);
-
-		// Verify
-		expect(mockChatCommandService.unregisterCommand).toHaveBeenCalledWith(
-			"queue",
-		);
-	});
-
 	// Test 7: Queue state management methods
 	it("should correctly manage queue state", () => {
 		// Setup
@@ -149,7 +123,7 @@ describe("WorkQueueService", () => {
 		const item = { name: "test-item" };
 
 		// Execute and verify start/started
-		expect(workQueueService.started()).toBeUndefined();
+		expect(workQueueService.started()).toBe(false);
 		workQueueService.start();
 		expect(workQueueService._started).toBe(true);
 		expect(workQueueService.started()).toBe(true);

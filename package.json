@@ -1,6 +1,7 @@
 {
 	"name": "@token-ring/queue",
 	"version": "0.1.0",
+ "description": "Queue for Token Ring",
 	"dependencies": {
 		"@token-ring/ai-client": "0.1.0",
 		"@token-ring/chat": "0.1.0",

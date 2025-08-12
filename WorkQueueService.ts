@@ -63,8 +63,16 @@ export default class WorkQueueService extends Service {
 	/**
 	 * Starts the service.
 	 */
-	async start(_registry?: Registry): Promise<void> {
+	async start(_registry: Registry): Promise<void> {
 		this._started = true;
+	}
+
+	/**
+	 * Stops the service.
+	 */
+	async stop(_registry: Registry): Promise<void> {
+		this._started = false;
+		this.currentItem = null;
 	}
 
 	/** Checks if the service has been started. */

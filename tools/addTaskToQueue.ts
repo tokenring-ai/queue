@@ -2,6 +2,7 @@ import ChatMessageStorage from "@token-ring/ai-client/ChatMessageStorage";
 import ChatService from "@token-ring/chat/ChatService";
 import { z } from "zod";
 import WorkQueueService from "../WorkQueueService.ts";
+import {Registry} from "@token-ring/registry";
 
 /**
  * Adds a task to the work queue for later execution
@@ -13,7 +14,7 @@ import WorkQueueService from "../WorkQueueService.ts";
  */
 export async function execute(
 	{ description, content }: { description: string; content: string },
-	registry: TokenRingRegistry,
+	registry: Registry,
 ): Promise<object> {
 	const chatService = registry.requireFirstServiceByType(ChatService);
 	const chatMessageStorage =

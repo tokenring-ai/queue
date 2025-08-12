@@ -1,9 +1,10 @@
 import { ChatMessageStorage } from "@token-ring/ai-client";
-import runChat from "@token-ring/ai-client/runChat";
+import { execute as runChat } from "@token-ring/ai-client/runChat";
 import ChatService from "@token-ring/chat/ChatService";
 import * as checkpoint from "@token-ring/history/commands/checkpoint";
 import WorkQueueService from "../WorkQueueService.ts";
 import {abandon} from "@token-ring/utility/abandon";
+import { Registry } from "@token-ring/registry";
 
 /**
  * /queue add|remove|clear|list|run <args>
@@ -14,8 +15,8 @@ import {abandon} from "@token-ring/utility/abandon";
 export const description = "/queue <command> - Manage a queue of chat prompts" as const;
 
 export async function execute(
-	remainder: any,
-	registry: TokenRingRegistry,
+	remainder: string,
+	registry: Registry,
 ): Promise<void> {
 	const chatService = registry.requireFirstServiceByType(ChatService);
 	const chatMessageStorage =
@@ -55,7 +56,7 @@ export async function execute(
 				);
 				return;
 			}
-			const removed = workQueueService.splice(idx, 1);
+			const removed = workQueueService.splice(idx, 1)[0];
 			chatService.systemLine(
 				`Removed \"${removed.name}\" from queue. Remaining: ${workQueueService.size()}`,
 			);
@@ -113,7 +114,7 @@ export async function execute(
 			workQueueService.setInitialMessage(
 				chatMessageStorage.getCurrentMessage(),
 			);
-			abandon(workQueueService.start());
+			abandon(workQueueService.start(registry));
 
 			await checkpoint.execute("create Start of queue operation", registry);
 			chatService.systemLine(
@@ -141,7 +142,7 @@ export async function execute(
 				chatMessageStorage.setCurrentMessage(
 					workQueueService.getInitialMessage(),
 				);
-				abandon(workQueueService.stop());
+				abandon(workQueueService.stop(registry));
 				if (action === "done") {
 					chatService.systemLine("Restored chat state to preserved state.");
 				} else {
@@ -175,7 +176,7 @@ export async function execute(
 				return;
 			}
 
-			workQueueService.queue(currentItem);
+			workQueueService.enqueue(currentItem);
 			workQueueService.setCurrentItem(null);
 			chatService.systemLine(
 				"Queue item skipped. It has been added to the end of the queue in case you would like to run it later, and you can use /queue next to load the next item in the queue, or /queue done to end the queue.",
@@ -206,7 +207,7 @@ export async function execute(
 			try {
 				await runChat(
 					{
-						systemPrompt: chatMessageStorage.getInstructions(),
+						systemPrompt: chatService.getInstructions() || "",
 						input,
 						model: "auto",
 					},
