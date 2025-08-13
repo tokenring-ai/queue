@@ -13,7 +13,7 @@ import {Registry} from "@token-ring/registry";
  * @returns Result containing queue status and message
  */
 export async function execute(
-	{ description, content }: { description: string; content: string },
+	{ description, content }: { description?: string; content?: string },
 	registry: Registry,
 ): Promise<object> {
 	const chatService = registry.requireFirstServiceByType(ChatService);
@@ -22,6 +22,22 @@ export async function execute(
 	const workQueueService = registry.requireFirstServiceByType(WorkQueueService);
 
 	chatService.systemLine(`[Queue] Added task "${description}" to queue`);
+
+    if (!description) {
+        chatService.errorLine("Task description is required");
+        return {
+            status: "error",
+            message: "Task description is required",
+        };
+    }
+
+    if (!content) {
+        chatService.errorLine("Task content is required");
+        return {
+            status: "error",
+            message: "Task content is required",
+        };
+    }
 
 	workQueueService.enqueue({
 		currentMessage: chatMessageStorage.getCurrentMessage(),
