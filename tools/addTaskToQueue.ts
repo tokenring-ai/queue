@@ -1,6 +1,6 @@
 import ChatMessageStorage from "@token-ring/ai-client/ChatMessageStorage";
 import ChatService from "@token-ring/chat/ChatService";
-import { z } from "zod";
+import {z} from "zod";
 import WorkQueueService from "../WorkQueueService.ts";
 import {Registry} from "@token-ring/registry";
 

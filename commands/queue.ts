@@ -1,10 +1,10 @@
-import { ChatMessageStorage } from "@token-ring/ai-client";
-import { execute as runChat } from "@token-ring/ai-client/runChat";
+import {ChatMessageStorage} from "@token-ring/ai-client";
+import {execute as runChat} from "@token-ring/ai-client/runChat";
 import ChatService from "@token-ring/chat/ChatService";
 import * as checkpoint from "@token-ring/history/commands/checkpoint";
 import WorkQueueService from "../WorkQueueService.ts";
 import {abandon} from "@token-ring/utility/abandon";
-import { Registry } from "@token-ring/registry";
+import {Registry} from "@token-ring/registry";
 
 /**
  * /queue add|remove|clear|list|run <args>

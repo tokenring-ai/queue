@@ -1,5 +1,5 @@
-import { Service } from "@token-ring/registry";
-import type { Registry } from "@token-ring/registry";
+import type {Registry} from "@token-ring/registry";
+import {Service} from "@token-ring/registry";
 
 /**
  * A service for managing a queue of work items.
@@ -20,11 +20,11 @@ export default class WorkQueueService extends Service {
 	};
 
 	/** The queue of work items. */
-	private queue: any[] = [];
+    queue: any[] = [];
 	/** The maximum size of the queue. */
-    private readonly maxSize: number | undefined;
+    readonly maxSize: number | undefined;
 	/** Whether the service has been started. */
-	private _started = false;
+    _started = false;
 	/** The initial message for the queue. */
 	private initialMessage: any = null;
 	/** The current item being processed. */
