@@ -6,4 +6,4 @@ export const description = packageJSON.description;
 
 export * as chatCommands from "./chatCommands.ts";
 export * as tools from "./tools.ts";
-export { default as WorkQueueService } from "./WorkQueueService.ts";
+export {default as WorkQueueService} from "./WorkQueueService.ts";
