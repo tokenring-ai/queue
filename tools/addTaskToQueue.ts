@@ -15,28 +15,23 @@ import {Registry} from "@token-ring/registry";
 export async function execute(
 	{ description, content }: { description?: string; content?: string },
 	registry: Registry,
-): Promise<object> {
+): Promise<{status: string, message: string} | { error:string}> {
 	const chatService = registry.requireFirstServiceByType(ChatService);
 	const chatMessageStorage =
 		registry.requireFirstServiceByType(ChatMessageStorage);
 	const workQueueService = registry.requireFirstServiceByType(WorkQueueService);
 
-	chatService.systemLine(`[Queue] Added task "${description}" to queue`);
+	// Prefix all chat output with the tool name
+	chatService.systemLine(`[addTaskToQueue] Added task "${description}" to queue`);
 
     if (!description) {
-        chatService.errorLine("Task description is required");
-        return {
-            status: "error",
-            message: "Task description is required",
-        };
+        chatService.errorLine("[addTaskToQueue] Task description is required");
+        return { error: "Task description is required" };
     }
 
     if (!content) {
-        chatService.errorLine("Task content is required");
-        return {
-            status: "error",
-            message: "Task content is required",
-        };
+        chatService.errorLine("[addTaskToQueue] Task content is required");
+        return { error: "Task content is required" };
     }
 
 	workQueueService.enqueue({
