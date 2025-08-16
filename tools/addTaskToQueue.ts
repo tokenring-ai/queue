@@ -12,32 +12,32 @@ import WorkQueueService from "../WorkQueueService.ts";
  * @param registry The package registry
  * @returns Result containing queue status and message
  */
+export const name = "queue/addTaskToQueue" as const;
+
 export async function execute(
   {description, content}: { description?: string; content?: string },
   registry: Registry,
-): Promise<{ status: string, message: string } | { error: string }> {
+): Promise<{ status: string; message: string }> {
   const chatService = registry.requireFirstServiceByType(ChatService);
   const chatMessageStorage =
     registry.requireFirstServiceByType(ChatMessageStorage);
   const workQueueService = registry.requireFirstServiceByType(WorkQueueService);
 
   // Prefix all chat output with the tool name
-  chatService.systemLine(`[addTaskToQueue] Added task "${description}" to queue`);
+  chatService.systemLine(`[${name}] Added task "${description}" to queue`);
 
   if (!description) {
-    chatService.errorLine("[addTaskToQueue] Task description is required");
-    return {error: "Task description is required"};
+    throw new Error(`[${name}] Task description is required`);
   }
 
   if (!content) {
-    chatService.errorLine("[addTaskToQueue] Task content is required");
-    return {error: "Task content is required"};
+    throw new Error(`[${name}] Task content is required`);
   }
 
   workQueueService.enqueue({
     currentMessage: chatMessageStorage.getCurrentMessage(),
     name: description,
-    input: [{role: "user", content}],
+    input: [{ role: "user", content }],
   });
 
   return {
@@ -57,7 +57,7 @@ export const parameters = z.object({
     .string()
     .describe(
       "A natural language string, explaining the exact task to be performed, in great detail. " +
-      "This string will be used to prompt an AI agent as the next message in this conversation, so should be as detailed as possible, " +
-      "and should directly order the AI agent to execute the task, using the tools that are available to it.",
+        "This string will be used to prompt an AI agent as the next message in this conversation, so should be as detailed as possible, " +
+        "and should directly order the AI agent to execute the task, using the tools that are available to it.",
     ),
 });
