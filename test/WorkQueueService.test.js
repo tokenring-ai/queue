@@ -19,7 +19,7 @@ vi.mock("@token-ring/chat/resources/ChatCommandRegistry", () => ({
 
 describe("WorkQueueService", () => {
 	let workQueueService;
-	let mockServices;
+	let _mockServices;
 	let mockChatCommandService;
 
 	beforeEach(() => {
@@ -29,7 +29,7 @@ describe("WorkQueueService", () => {
 		// Setup mock registry
 		mockChatCommandService = new ChatCommandRegistry();
 
-		mockServices = {
+		_mockServices = {
 			requireFirstServiceByType: vi.fn((contextType) => {
 				if (contextType === ChatCommandRegistry) {
 					return mockChatCommandService;
