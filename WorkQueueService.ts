@@ -1,12 +1,20 @@
+import {StoredChatMessage} from "@token-ring/ai-client/ChatMessageStorage";
+import {ChatInputMessage} from "@token-ring/ai-client/client/AIChatClient";
 import type {Registry} from "@token-ring/registry";
 import {Service} from "@token-ring/registry";
+
+type QueueItem = {
+  currentMessage?: StoredChatMessage | null;
+  name: string;
+  input: ChatInputMessage[];
+}
 
 /**
  * A service for managing a queue of work items.
  */
 export default class WorkQueueService extends Service {
   /** Configuration properties for the constructor. */
-  static constructorProperties: any = {
+  static constructorProperties: Record<string, unknown> = {
     maxSize: {
       type: "number",
       required: false,
@@ -18,19 +26,18 @@ export default class WorkQueueService extends Service {
   /** A description of the service. */
   description = "Provides WorkQueue functionality";
   /** The queue of work items. */
-  queue: any[] = [];
+  queue: QueueItem[] = [];
   /** The maximum size of the queue. */
   readonly maxSize: number | undefined;
   /** Whether the service has been started. */
   _started = false;
   /** The initial message for the queue. */
-  private initialMessage: any = null;
+  private initialMessage: StoredChatMessage | null = null;
   /** The current item being processed. */
-  private currentItem: any = null;
+  private currentItem: QueueItem | null = null;
 
   /**
    * Creates a new WorkQueueService instance.
-   * @param options Configuration options.
    */
   constructor({maxSize}: { maxSize?: number } = {}) {
     super();
@@ -42,20 +49,6 @@ export default class WorkQueueService extends Service {
    */
   async status(_registry: Registry): Promise<{ active: boolean; service: string }> {
     return {active: true, service: "WorkQueueService"};
-  }
-
-  /**
-   * Initializes the service.
-   */
-  async init(_registry: Registry): Promise<void> {
-    // Implementation for initialization if needed
-  }
-
-  /**
-   * Deinitializes the service.
-   */
-  async deinit(_registry: Registry): Promise<void> {
-    // Implementation for deinitialization if needed
   }
 
   /**
@@ -79,22 +72,22 @@ export default class WorkQueueService extends Service {
   }
 
   /** Sets the initial message for the queue. */
-  setInitialMessage(message: any): void {
+  setInitialMessage(message: StoredChatMessage | null): void {
     this.initialMessage = message;
   }
 
   /** Gets the initial message for the queue. */
-  getInitialMessage(): any {
+  getInitialMessage(): StoredChatMessage | null {
     return this.initialMessage;
   }
 
   /** Gets the current item being processed. */
-  getCurrentItem(): any {
-    return this.currentItem ?? undefined;
+  getCurrentItem(): QueueItem | null {
+    return this.currentItem;
   }
 
   /** Sets the current item being processed. */
-  setCurrentItem(item: any): void {
+  setCurrentItem(item: QueueItem | null): void {
     this.currentItem = item;
   }
 
@@ -102,7 +95,7 @@ export default class WorkQueueService extends Service {
    * Adds a work item to the end of the queue.
    * Returns true if the item was added, or false if the queue is full.
    */
-  enqueue(item: any): boolean {
+  enqueue(item: QueueItem): boolean {
     if (this.maxSize && this.queue.length >= this.maxSize) {
       return false;
     }
@@ -111,12 +104,12 @@ export default class WorkQueueService extends Service {
   }
 
   /** Removes and returns the first item from the queue. */
-  dequeue(): any | undefined {
+  dequeue(): QueueItem | undefined {
     return this.queue.shift();
   }
 
   /** Gets the item at the specified index in the queue. */
-  get(idx: number): any {
+  get(idx: number): QueueItem {
     return this.queue[idx];
   }
 
@@ -124,7 +117,7 @@ export default class WorkQueueService extends Service {
    * Modifies the queue by removing or replacing items.
    * Returns the removed items.
    */
-  splice(start: number, deleteCount: number, ...items: any[]): any[] {
+  splice(start: number, deleteCount: number, ...items: QueueItem[]): QueueItem[] {
     return this.queue.splice(start, deleteCount, ...items);
   }
 
@@ -144,7 +137,7 @@ export default class WorkQueueService extends Service {
   }
 
   /** Returns all items in the queue without removing them. */
-  getAll(): any[] {
+  getAll(): QueueItem[] {
     return [...this.queue];
   }
 }

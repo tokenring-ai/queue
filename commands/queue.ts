@@ -134,7 +134,7 @@ export async function execute(
       const currentItem = workQueueService.getCurrentItem();
 
       await checkpoint.execute(
-        `create End of queue operation: ${currentItem.name}`,
+        `create End of queue operation: ${currentItem?.name ?? 'unknown'}`,
         registry,
       );
 
@@ -155,7 +155,7 @@ export async function execute(
 
       const newItem = workQueueService.dequeue();
       chatService.systemLine(
-        `Queue Item loaded: ${newItem.name} Use /queue run to run the queue item, and /queue next|skip|done to move on to the next item.`,
+        `Queue Item loaded: ${newItem?.name ?? 'unknown'} Use /queue run to run the queue item, and /queue next|skip|done to move on to the next item.`,
       );
 
       break;
@@ -227,6 +227,7 @@ export async function execute(
   }
 }
 
+// noinspection JSUnusedGlobalSymbols
 export function help(): string[] {
   return [
     "/queue [add|remove|clear|list|run|start|next|skip|done] [args...]",
