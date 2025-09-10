@@ -1,5 +1,5 @@
 ```markdown
-# @token-ring/queue
+# @tokenring-ai/queue
 
 This package provides a lightweight, in-memory work queue for Token Ring along with chat commands and a programmatic
 tool to manage and run queued tasks. It integrates with the Token Ring registry, chat UI, and chat message storage to
@@ -33,8 +33,8 @@ Constructor options:
 Example (registry usage):
 
 ```ts
-import { WorkQueueService } from "@token-ring/queue";
-import { TokenRingRegistry } from "@token-ring/registry"; // example registry
+import { WorkQueueService } from "@tokenring-ai/queue";
+import { TokenRingRegistry } from "@tokenring-ai/registry"; // example registry
 
 const registry = new TokenRingRegistry();
 const workQueue = new WorkQueueService({ maxSize: 50 });
@@ -118,7 +118,7 @@ Parameters:
 Example:
 
 ```ts
-import {tools} from "@token-ring/queue";
+import {tools} from "@tokenring-ai/queue";
 
 await tools.addTaskToQueue.execute(
   {
@@ -151,10 +151,10 @@ From this package:
 
 This package relies on Token Ring core services via the registry:
 
-- @token-ring/registry — service registration and lookup
-- @token-ring/chat — user/system messaging from chat commands
-- @token-ring/ai-client — ChatMessageStorage to snapshot/restore chat state
-- @token-ring/history — checkpoints to mark queue session boundaries
+- @tokenring-ai/registry — service registration and lookup
+- @tokenring-ai/chat — user/system messaging from chat commands
+- @tokenring-ai/ai-client — ChatMessageStorage to snapshot/restore chat state
+- @tokenring-ai/history — checkpoints to mark queue session boundaries
 
 The queue is intentionally simple and in-memory. For persistence or distributed processing, extend/replace the service
 accordingly.

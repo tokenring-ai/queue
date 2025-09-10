@@ -1,9 +1,15 @@
+import {TokenRingPackage} from "@tokenring-ai/agent";
+
+import * as chatCommands from "./chatCommands.ts";
 import packageJSON from './package.json' with {type: 'json'};
+import * as tools from "./tools.ts";
 
-export const name = packageJSON.name;
-export const version = packageJSON.version;
-export const description = packageJSON.description;
+export const packageInfo: TokenRingPackage = {
+  name: packageJSON.name,
+  version: packageJSON.version,
+  description: packageJSON.description,
+  chatCommands,
+  tools
+};
 
-export * as chatCommands from "./chatCommands.ts";
-export * as tools from "./tools.ts";
 export {default as WorkQueueService} from "./WorkQueueService.ts";

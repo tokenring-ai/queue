@@ -1,9 +1,7 @@
-import {ChatMessageStorage} from "@token-ring/ai-client";
-import {execute as runChat} from "@token-ring/ai-client/runChat";
-import ChatService from "@token-ring/chat/ChatService";
-import * as checkpoint from "@token-ring/history/commands/checkpoint";
-import {Registry} from "@token-ring/registry";
-import {abandon} from "@token-ring/utility/abandon";
+import Agent from "@tokenring-ai/agent/Agent";
+import {ChatMessageStorage} from "@tokenring-ai/ai-client";
+import runChat from "@tokenring-ai/ai-client/runChat";
+import * as checkpoint from "@tokenring-ai/history/commands/checkpoint";
 import WorkQueueService from "../WorkQueueService.ts";
 
 /**
@@ -16,13 +14,12 @@ export const description = "/queue <command> - Manage a queue of chat prompts" a
 
 export async function execute(
   remainder: string,
-  registry: Registry,
+  agent: Agent,
 ): Promise<void> {
-  const chatService = registry.requireFirstServiceByType(ChatService);
   const chatMessageStorage =
-    registry.requireFirstServiceByType(ChatMessageStorage);
+    agent.requireFirstServiceByType(ChatMessageStorage);
 
-  const workQueueService = registry.requireFirstServiceByType(WorkQueueService);
+  const workQueueService = agent.requireFirstServiceByType(WorkQueueService);
 
   const [action, ...args] = (remainder ?? "").trim().split(/\s+/);
 
@@ -30,7 +27,7 @@ export async function execute(
     case "add": {
       const prompt = args.join(" ");
       if (!prompt) {
-        chatService.errorLine("Usage: /queue add <prompt>");
+        agent.errorLine("Usage: /queue add <prompt>");
         return;
       }
 
@@ -40,25 +37,25 @@ export async function execute(
         currentMessage,
         name: prompt,
         input: [{role: "user", content: prompt}],
-      });
+      }, agent);
 
-      chatService.systemLine(
-        `Added to queue. Queue length: ${workQueueService.size()}`,
+      agent.infoLine(
+        `Added to queue. Queue length: ${workQueueService.size(agent)}`,
       );
       break;
     }
     case "remove": {
       const idx = Number.parseInt(args[0], 10);
 
-      if (Number.isNaN(idx) || idx < 0 || idx >= workQueueService.size()) {
-        chatService.errorLine(
+      if (Number.isNaN(idx) || idx < 0 || idx >= workQueueService.size(agent)) {
+        agent.errorLine(
           "Usage: /queue remove <index>  (index starts from 0)",
         );
         return;
       }
-      const removed = workQueueService.splice(idx, 1)[0];
-      chatService.systemLine(
-        `Removed \"${removed.name}\" from queue. Remaining: ${workQueueService.size()}`,
+      const removed = workQueueService.splice(idx, 1, agent)[0];
+      agent.infoLine(
+        `Removed \"${removed.name}\" from queue. Remaining: ${workQueueService.size(agent)}`,
       );
       break;
     }
@@ -66,46 +63,46 @@ export async function execute(
     case "details": {
       const idx = Number.parseInt(args[0], 10);
 
-      if (Number.isNaN(idx) || idx < 0 || idx >= workQueueService.size()) {
-        chatService.errorLine(
+      if (Number.isNaN(idx) || idx < 0 || idx >= workQueueService.size(agent)) {
+        agent.errorLine(
           "Usage: /queue details <index>  (index starts from 0)",
         );
         return;
       }
-      const item = workQueueService.get(idx);
-      chatService.systemLine(`Queue item details:`);
+      const item = workQueueService.get(idx, agent);
+      agent.infoLine(`Queue item details:`);
       JSON.stringify(item, null, 2)
         .split("")
-        .forEach((line) => chatService.systemLine(line));
+        .forEach((line) => agent.infoLine(line));
 
       break;
     }
     case "clear": {
-      workQueueService.clear();
-      chatService.systemLine("Queue cleared!");
+      workQueueService.clear(agent);
+      agent.infoLine("Queue cleared!");
       break;
     }
 
     case "list": {
-      if (workQueueService.size() === 0) {
-        chatService.systemLine("Queue is empty.");
+      if (workQueueService.size(agent) === 0) {
+        agent.infoLine("Queue is empty.");
         return;
       }
-      chatService.systemLine("Queue contents:");
-      workQueueService.getAll().forEach(({name}: any, i: number) => {
-        chatService.systemLine(`[${i}] ${name}`);
+      agent.infoLine("Queue contents:");
+      workQueueService.getAll(agent).forEach(({name}: any, i: number) => {
+        agent.infoLine(`[${i}] ${name}`);
       });
       break;
     }
 
     case "start": {
-      if (workQueueService.isEmpty()) {
-        chatService.systemLine("Queue is empty.");
+      if (workQueueService.isEmpty(agent)) {
+        agent.infoLine("Queue is empty.");
         return;
       }
 
-      if (workQueueService.started()) {
-        chatService.systemLine(
+      if (workQueueService.started(agent)) {
+        agent.infoLine(
           "Queue already started. Use /queue next to load the next item in the queue, or queue done to end the queue.",
         );
         return;
@@ -113,87 +110,88 @@ export async function execute(
 
       workQueueService.setInitialMessage(
         chatMessageStorage.getCurrentMessage(),
+        agent,
       );
-      abandon(workQueueService.start(registry));
+      workQueueService.startWork(agent);
 
-      await checkpoint.execute("create Start of queue operation", registry);
-      chatService.systemLine(
+      await checkpoint.execute("create Start of queue operation", agent);
+      agent.infoLine(
         "Queue started, use /queue next to start working on the first item in the queue, or /queue done to end the queue.",
       );
       break;
     }
     case "next":
     case "done": {
-      if (!workQueueService.started()) {
-        chatService.systemLine(
+      if (!workQueueService.started(agent)) {
+        agent.infoLine(
           "Queue not started. Use /queue start to start the queue.",
         );
         return;
       }
 
-      const currentItem = workQueueService.getCurrentItem();
+      const currentItem = workQueueService.getCurrentItem(agent);
 
       await checkpoint.execute(
         `create End of queue operation: ${currentItem?.name ?? 'unknown'}`,
-        registry,
+        agent,
       );
 
-      if (action === "done" || workQueueService.isEmpty()) {
+      if (action === "done" || workQueueService.isEmpty(agent)) {
         chatMessageStorage.setCurrentMessage(
-          workQueueService.getInitialMessage(),
+          workQueueService.getInitialMessage(agent),
         );
-        abandon(workQueueService.stop(registry));
+        workQueueService.stopWork(agent);
         if (action === "done") {
-          chatService.systemLine("Restored chat state to preserved state.");
+          agent.infoLine("Restored chat state to preserved state.");
         } else {
-          chatService.systemLine("Queue complete.");
+          agent.infoLine("Queue complete.");
         }
         return;
       }
 
       chatMessageStorage.setCurrentMessage(null);
 
-      const newItem = workQueueService.dequeue();
-      chatService.systemLine(
+      const newItem = workQueueService.dequeue(agent);
+      agent.infoLine(
         `Queue Item loaded: ${newItem?.name ?? 'unknown'} Use /queue run to run the queue item, and /queue next|skip|done to move on to the next item.`,
       );
 
       break;
     }
     case "skip": {
-      if (!workQueueService.started()) {
-        chatService.systemLine(
+      if (!workQueueService.started(agent)) {
+        agent.infoLine(
           "Queue not started. Use /queue start to start the queue.",
         );
         return;
       }
 
-      const currentItem = workQueueService.getCurrentItem();
+      const currentItem = workQueueService.getCurrentItem(agent);
       if (!currentItem) {
-        chatService.systemLine(
+        agent.infoLine(
           "No queue item loaded. Use /queue next to load the next item in the queue, or queue done to end the queue.",
         );
         return;
       }
 
-      workQueueService.enqueue(currentItem);
-      workQueueService.setCurrentItem(null);
-      chatService.systemLine(
+      workQueueService.enqueue(currentItem, agent);
+      workQueueService.setCurrentItem(null, agent);
+      agent.infoLine(
         "Queue item skipped. It has been added to the end of the queue in case you would like to run it later, and you can use /queue next to load the next item in the queue, or /queue done to end the queue.",
       );
       break;
     }
     case "run": {
-      if (!workQueueService.started()) {
-        chatService.systemLine(
+      if (!workQueueService.started(agent)) {
+        agent.infoLine(
           "Queue not started. Use /queue start to start the queue.",
         );
         return;
       }
 
-      const currentItem = workQueueService.getCurrentItem();
+      const currentItem = workQueueService.getCurrentItem(agent);
       if (!currentItem) {
-        chatService.systemLine(
+        agent.infoLine(
           "No queue item loaded. Use /queue next to load the next item in the queue, or queue done to end the queue.",
         );
         return;
@@ -201,20 +199,15 @@ export async function execute(
 
       const {input, currentMessage} = currentItem;
       chatMessageStorage.setCurrentMessage(
-        currentMessage ?? workQueueService.getInitialMessage(),
+        currentMessage ?? workQueueService.getInitialMessage(agent),
       );
 
       try {
-        await runChat(
-          {
-            systemPrompt: chatService.getInstructions() || "",
-            input,
-            model: "auto",
-          },
-          registry,
-        );
+        await runChat({
+          input
+        }, agent);
       } catch (error: any) {
-        chatService.errorLine(
+        agent.errorLine(
           `Error running queued prompt: ${error.message || error}`,
         );
       }

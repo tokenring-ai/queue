@@ -1,6 +1,5 @@
-import ChatMessageStorage from "@token-ring/ai-client/ChatMessageStorage";
-import ChatService from "@token-ring/chat/ChatService";
-import {Registry} from "@token-ring/registry";
+import Agent from "@tokenring-ai/agent/Agent";
+import ChatMessageStorage from "@tokenring-ai/ai-client/ChatMessageStorage";
 import {z} from "zod";
 import WorkQueueService from "../WorkQueueService.ts";
 
@@ -11,15 +10,14 @@ export const name = "queue/addTaskToQueue" as const;
 
 export async function execute(
   {description, content}: { description?: string; content?: string },
-  registry: Registry,
+  agent: Agent,
 ): Promise<{ status: string; message: string }> {
-  const chatService = registry.requireFirstServiceByType(ChatService);
   const chatMessageStorage =
-    registry.requireFirstServiceByType(ChatMessageStorage);
-  const workQueueService = registry.requireFirstServiceByType(WorkQueueService);
+    agent.requireFirstServiceByType(ChatMessageStorage);
+  const workQueueService = agent.requireFirstServiceByType(WorkQueueService);
 
   // Prefix all chat output with the tool name
-  chatService.systemLine(`[${name}] Added task "${description}" to queue`);
+  agent.infoLine(`[${name}] Added task "${description}" to queue`);
 
   if (!description) {
     throw new Error(`[${name}] Task description is required`);
@@ -33,7 +31,7 @@ export async function execute(
     currentMessage: chatMessageStorage.getCurrentMessage(),
     name: description,
     input: [{role: "user", content}],
-  });
+  }, agent);
 
   return {
     status: "queued",

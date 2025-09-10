@@ -1,7 +1,9 @@
-import {StoredChatMessage} from "@token-ring/ai-client/ChatMessageStorage";
-import {ChatInputMessage} from "@token-ring/ai-client/client/AIChatClient";
-import type {Registry} from "@token-ring/registry";
-import {Service} from "@token-ring/registry";
+import {Agent} from "@tokenring-ai/agent";
+import {AgentStateSlice} from "@tokenring-ai/agent/Agent";
+import {ResetWhat} from "@tokenring-ai/agent/AgentEvents";
+import {TokenRingService} from "@tokenring-ai/agent/types";
+import {StoredChatMessage} from "@tokenring-ai/ai-client/ChatMessageStorage";
+import {ChatInputMessage} from "@tokenring-ai/ai-client/client/AIChatClient";
 
 type QueueItem = {
   currentMessage?: StoredChatMessage | null;
@@ -9,135 +11,152 @@ type QueueItem = {
   input: ChatInputMessage[];
 }
 
+class WorkQueueState implements AgentStateSlice {
+  /** The queue of work items. */
+  queue: QueueItem[] = [];
+  /** Whether the service has been started. */
+  started = false;
+  /** The initial message for the queue. */
+  initialMessage: StoredChatMessage | null = null;
+  /** The current item being processed. */
+  currentItem: QueueItem | null = null;
+
+  constructor({}) {
+    this.reset(['chat']);
+  }
+
+  reset(what: ResetWhat[]) {
+    if (what.includes('chat')) {
+      this.started = false;
+      this.currentItem = null;
+      this.initialMessage = null;
+      this.queue = [];
+    }
+  }
+}
+
+
 /**
  * A service for managing a queue of work items.
  */
-export default class WorkQueueService extends Service {
-  /** Configuration properties for the constructor. */
-  static constructorProperties: Record<string, unknown> = {
-    maxSize: {
-      type: "number",
-      required: false,
-      description: "Maximum size of the work queue. Defaults to unlimited",
-    },
-  };
-  /** The name of the service. */
+export default class WorkQueueService implements TokenRingService {
   name = "WorkQueueService";
-  /** A description of the service. */
   description = "Provides WorkQueue functionality";
-  /** The queue of work items. */
-  queue: QueueItem[] = [];
+
   /** The maximum size of the queue. */
   readonly maxSize: number | undefined;
-  /** Whether the service has been started. */
-  _started = false;
-  /** The initial message for the queue. */
-  private initialMessage: StoredChatMessage | null = null;
-  /** The current item being processed. */
-  private currentItem: QueueItem | null = null;
 
   /**
    * Creates a new WorkQueueService instance.
    */
   constructor({maxSize}: { maxSize?: number } = {}) {
-    super();
     this.maxSize = maxSize;
   }
 
-  /**
-   * Reports the status of the service.
-   */
-  async status(_registry: Registry): Promise<{ active: boolean; service: string }> {
-    return {active: true, service: "WorkQueueService"};
+  async attach(agent: Agent): Promise<void> {
+    agent.initializeState(WorkQueueState, {});
   }
 
-  /**
-   * Starts the service.
-   */
-  async start(_registry: Registry): Promise<void> {
-    this._started = true;
+  startWork(agent: Agent): void {
+    agent.mutateState(WorkQueueState, (state: WorkQueueState) => {
+      state.started = true;
+    })
   }
 
   /**
    * Stops the service.
    */
-  async stop(_registry: Registry): Promise<void> {
-    this._started = false;
-    this.currentItem = null;
+  stopWork(agent: Agent): void {
+    agent.mutateState(WorkQueueState, (state: WorkQueueState) => {
+      state.started = false;
+      state.currentItem = null;
+    })
   }
 
   /** Checks if the service has been started. */
-  started(): boolean {
-    return this._started;
+  started(agent: Agent): boolean {
+    return agent.getState(WorkQueueState).started;
   }
 
   /** Sets the initial message for the queue. */
-  setInitialMessage(message: StoredChatMessage | null): void {
-    this.initialMessage = message;
+  setInitialMessage(message: StoredChatMessage | null, agent: Agent): void {
+    agent.mutateState(WorkQueueState, (state: WorkQueueState) => {
+      state.initialMessage = message;
+    })
   }
 
   /** Gets the initial message for the queue. */
-  getInitialMessage(): StoredChatMessage | null {
-    return this.initialMessage;
+  getInitialMessage(agent: Agent): StoredChatMessage | null {
+    return agent.getState(WorkQueueState).initialMessage;
   }
 
   /** Gets the current item being processed. */
-  getCurrentItem(): QueueItem | null {
-    return this.currentItem;
+  getCurrentItem(agent: Agent): QueueItem | null {
+    return agent.getState(WorkQueueState).currentItem;
   }
 
   /** Sets the current item being processed. */
-  setCurrentItem(item: QueueItem | null): void {
-    this.currentItem = item;
+  setCurrentItem(item: QueueItem | null, agent: Agent): void {
+    return agent.mutateState(WorkQueueState, (state: WorkQueueState) => {
+      state.currentItem = item;
+    })
   }
 
   /**
    * Adds a work item to the end of the queue.
    * Returns true if the item was added, or false if the queue is full.
    */
-  enqueue(item: QueueItem): boolean {
-    if (this.maxSize && this.queue.length >= this.maxSize) {
-      return false;
-    }
-    this.queue.push(item);
-    return true;
+  enqueue(item: QueueItem, agent: Agent): boolean {
+    return agent.mutateState(WorkQueueState, (state: WorkQueueState) => {
+      if (this.maxSize && state.queue.length >= this.maxSize) {
+        return false;
+      }
+      state.queue.push(item);
+      return true;
+    });
   }
 
   /** Removes and returns the first item from the queue. */
-  dequeue(): QueueItem | undefined {
-    return this.queue.shift();
+  dequeue(agent: Agent): QueueItem | undefined {
+    return agent.mutateState(WorkQueueState, (state: WorkQueueState) => {
+      return state.queue.shift();
+    });
   }
 
   /** Gets the item at the specified index in the queue. */
-  get(idx: number): QueueItem {
-    return this.queue[idx];
+  get(idx: number, agent: Agent): QueueItem {
+    return agent.getState(WorkQueueState).queue[idx];
   }
 
   /**
    * Modifies the queue by removing or replacing items.
    * Returns the removed items.
    */
-  splice(start: number, deleteCount: number, ...items: QueueItem[]): QueueItem[] {
-    return this.queue.splice(start, deleteCount, ...items);
+  splice(start: number, deleteCount: number, agent: Agent, ...items: QueueItem[]): QueueItem[] {
+    return agent.mutateState(WorkQueueState, (state: WorkQueueState) => {
+      return state.queue.splice(start, deleteCount, ...items);
+    })
   }
 
   /** Returns the current size of the queue. */
-  size(): number {
-    return this.queue.length;
+  size(agent: Agent): number {
+    return agent.getState(WorkQueueState).queue.length;
   }
 
   /** Checks if the queue is empty. */
-  isEmpty(): boolean {
-    return this.queue.length === 0;
+  isEmpty(agent: Agent): boolean {
+    return agent.getState(WorkQueueState).queue.length === 0;
   }
 
   /** Clears all items from the queue. */
-  clear(): void {
-    this.queue = [];
+  clear(agent: Agent): void {
+    agent.mutateState(WorkQueueState, (state: WorkQueueState) => {
+      state.queue = [];
+    })
   }
 
   /** Returns all items in the queue without removing them. */
-  getAll(): QueueItem[] {
-    return [...this.queue];
+  getAll(agent: Agent): QueueItem[] {
+    return [...agent.getState(WorkQueueState).queue];
   }
 }

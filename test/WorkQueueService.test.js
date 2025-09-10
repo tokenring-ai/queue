@@ -1,9 +1,9 @@
-import ChatCommandRegistry from "@token-ring/registry/ChatCommandRegistry";
+import ChatCommandRegistry from "@tokenring-ai/registry/ChatCommandRegistry";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import WorkQueueService from "../WorkQueueService.ts";
 
 // Mock dependencies
-vi.mock("@token-ring/chat/resources/ChatCommandRegistry", () => ({
+vi.mock("@tokenring-ai/chat/resources/ChatCommandRegistry", () => ({
 	default: class MockChatCommandService {
 		commands = new Map();
 
