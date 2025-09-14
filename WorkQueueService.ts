@@ -1,37 +1,48 @@
 import {Agent} from "@tokenring-ai/agent";
 import {AgentStateSlice} from "@tokenring-ai/agent/Agent";
+import {AgentCheckpointData} from "@tokenring-ai/agent/AgentCheckpointProvider";
 import {ResetWhat} from "@tokenring-ai/agent/AgentEvents";
 import {TokenRingService} from "@tokenring-ai/agent/types";
-import {StoredChatMessage} from "@tokenring-ai/ai-client/ChatMessageStorage";
 import {ChatInputMessage} from "@tokenring-ai/ai-client/client/AIChatClient";
 
 type QueueItem = {
-  currentMessage?: StoredChatMessage | null;
+  checkpoint: AgentCheckpointData;
   name: string;
   input: ChatInputMessage[];
 }
 
 class WorkQueueState implements AgentStateSlice {
+  name = "WorkQueueState";
   /** The queue of work items. */
   queue: QueueItem[] = [];
   /** Whether the service has been started. */
   started = false;
-  /** The initial message for the queue. */
-  initialMessage: StoredChatMessage | null = null;
+  /** The initial agent checkpoint for the queue. */
+  initialCheckpoint: AgentCheckpointData | null = null;
   /** The current item being processed. */
   currentItem: QueueItem | null = null;
 
-  constructor({}) {
-    this.reset(['chat']);
-  }
-
   reset(what: ResetWhat[]) {
     if (what.includes('chat')) {
+      this.queue = [];
       this.started = false;
       this.currentItem = null;
-      this.initialMessage = null;
-      this.queue = [];
+      this.initialCheckpoint = null;
     }
+  }
+  serialize() : object {
+    return {
+      started: this.started,
+      currentItem: this.currentItem,
+      initialCheckpoint: this.initialCheckpoint,
+      queue: this.queue,
+    }
+  }
+  deserialize(data: any) : void {
+    this.started = data.started;
+    this.currentItem = data.currentItem;
+    this.initialCheckpoint = data.initialCheckpoint;
+    this.queue = data.queue;
   }
 }
 
@@ -79,15 +90,21 @@ export default class WorkQueueService implements TokenRingService {
   }
 
   /** Sets the initial message for the queue. */
-  setInitialMessage(message: StoredChatMessage | null, agent: Agent): void {
+  setInitialCheckpoint(message: AgentCheckpointData, agent: Agent): void {
     agent.mutateState(WorkQueueState, (state: WorkQueueState) => {
-      state.initialMessage = message;
+      state.initialCheckpoint = message;
     })
   }
 
-  /** Gets the initial message for the queue. */
-  getInitialMessage(agent: Agent): StoredChatMessage | null {
-    return agent.getState(WorkQueueState).initialMessage;
+  clearInitialCheckpoint(agent: Agent): void {
+    agent.mutateState(WorkQueueState, (state: WorkQueueState) => {
+      state.initialCheckpoint = null;
+    })
+  }
+
+  /** Gets the initial agent state checkpoint for the queue. */
+  getInitialCheckpoint(agent: Agent): AgentCheckpointData | null {
+    return agent.getState(WorkQueueState).initialCheckpoint;
   }
 
   /** Gets the current item being processed. */

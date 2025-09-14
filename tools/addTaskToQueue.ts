@@ -1,5 +1,5 @@
 import Agent from "@tokenring-ai/agent/Agent";
-import ChatMessageStorage from "@tokenring-ai/ai-client/ChatMessageStorage";
+import AIService from "@tokenring-ai/ai-client/AIService";
 import {z} from "zod";
 import WorkQueueService from "../WorkQueueService.ts";
 
@@ -12,8 +12,6 @@ export async function execute(
   {description, content}: { description?: string; content?: string },
   agent: Agent,
 ): Promise<{ status: string; message: string }> {
-  const chatMessageStorage =
-    agent.requireFirstServiceByType(ChatMessageStorage);
   const workQueueService = agent.requireFirstServiceByType(WorkQueueService);
 
   // Prefix all chat output with the tool name
@@ -28,7 +26,7 @@ export async function execute(
   }
 
   workQueueService.enqueue({
-    currentMessage: chatMessageStorage.getCurrentMessage(),
+    checkpoint: agent.generateCheckpoint(),
     name: description,
     input: [{role: "user", content}],
   }, agent);

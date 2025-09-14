@@ -129,8 +129,8 @@ describe("WorkQueueService", () => {
 		expect(workQueueService.started()).toBe(true);
 
 		// Execute and verify initial message
-		workQueueService.setInitialMessage(message);
-		expect(workQueueService.getInitialMessage()).toBe(message);
+		workQueueService.setInitialCheckpoint(message);
+		expect(workQueueService.getInitialCheckpoint()).toBe(message);
 
 		// Execute and verify current item
 		expect(workQueueService.getCurrentItem()).toBeUndefined();

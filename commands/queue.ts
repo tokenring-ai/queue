@@ -1,7 +1,6 @@
 import Agent from "@tokenring-ai/agent/Agent";
-import {ChatMessageStorage} from "@tokenring-ai/ai-client";
 import runChat from "@tokenring-ai/ai-client/runChat";
-import * as checkpoint from "@tokenring-ai/history/commands/checkpoint";
+import * as checkpoint from "@tokenring-ai/agent/commands/checkpoint";
 import WorkQueueService from "../WorkQueueService.ts";
 
 /**
@@ -16,9 +15,6 @@ export async function execute(
   remainder: string,
   agent: Agent,
 ): Promise<void> {
-  const chatMessageStorage =
-    agent.requireFirstServiceByType(ChatMessageStorage);
-
   const workQueueService = agent.requireFirstServiceByType(WorkQueueService);
 
   const [action, ...args] = (remainder ?? "").trim().split(/\s+/);
@@ -31,10 +27,8 @@ export async function execute(
         return;
       }
 
-      const currentMessage = chatMessageStorage.getCurrentMessage();
-
       workQueueService.enqueue({
-        currentMessage,
+        checkpoint: agent.generateCheckpoint(),
         name: prompt,
         input: [{role: "user", content: prompt}],
       }, agent);
@@ -108,8 +102,8 @@ export async function execute(
         return;
       }
 
-      workQueueService.setInitialMessage(
-        chatMessageStorage.getCurrentMessage(),
+      workQueueService.setInitialCheckpoint(
+        agent.generateCheckpoint(),
         agent,
       );
       workQueueService.startWork(agent);
@@ -137,9 +131,13 @@ export async function execute(
       );
 
       if (action === "done" || workQueueService.isEmpty(agent)) {
-        chatMessageStorage.setCurrentMessage(
-          workQueueService.getInitialMessage(agent),
-        );
+        const initialCheckpoint = workQueueService.getInitialCheckpoint(agent);
+        if (initialCheckpoint) {
+          agent.restoreCheckpoint(initialCheckpoint);
+        } else {
+          agent.errorLine("Couldn't restore initial state, no initial checkpoint found");
+        }
+
         workQueueService.stopWork(agent);
         if (action === "done") {
           agent.infoLine("Restored chat state to preserved state.");
@@ -148,8 +146,6 @@ export async function execute(
         }
         return;
       }
-
-      chatMessageStorage.setCurrentMessage(null);
 
       const newItem = workQueueService.dequeue(agent);
       agent.infoLine(
@@ -197,10 +193,8 @@ export async function execute(
         return;
       }
 
-      const {input, currentMessage} = currentItem;
-      chatMessageStorage.setCurrentMessage(
-        currentMessage ?? workQueueService.getInitialMessage(agent),
-      );
+      const {input, checkpoint} = currentItem;
+      agent.restoreCheckpoint(checkpoint);
 
       try {
         await runChat({
