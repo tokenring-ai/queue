@@ -1,50 +1,7 @@
 import {Agent} from "@tokenring-ai/agent";
-import {AgentStateSlice} from "@tokenring-ai/agent/Agent";
 import {AgentCheckpointData} from "@tokenring-ai/agent/AgentCheckpointProvider";
-import {ResetWhat} from "@tokenring-ai/agent/AgentEvents";
 import {TokenRingService} from "@tokenring-ai/agent/types";
-import {ChatInputMessage} from "@tokenring-ai/ai-client/client/AIChatClient";
-
-type QueueItem = {
-  checkpoint: AgentCheckpointData;
-  name: string;
-  input: ChatInputMessage[];
-}
-
-class WorkQueueState implements AgentStateSlice {
-  name = "WorkQueueState";
-  /** The queue of work items. */
-  queue: QueueItem[] = [];
-  /** Whether the service has been started. */
-  started = false;
-  /** The initial agent checkpoint for the queue. */
-  initialCheckpoint: AgentCheckpointData | null = null;
-  /** The current item being processed. */
-  currentItem: QueueItem | null = null;
-
-  reset(what: ResetWhat[]) {
-    if (what.includes('chat')) {
-      this.queue = [];
-      this.started = false;
-      this.currentItem = null;
-      this.initialCheckpoint = null;
-    }
-  }
-  serialize() : object {
-    return {
-      started: this.started,
-      currentItem: this.currentItem,
-      initialCheckpoint: this.initialCheckpoint,
-      queue: this.queue,
-    }
-  }
-  deserialize(data: any) : void {
-    this.started = data.started;
-    this.currentItem = data.currentItem;
-    this.initialCheckpoint = data.initialCheckpoint;
-    this.queue = data.queue;
-  }
-}
+import {QueueItem, WorkQueueState} from "./state/workQueueState.js";
 
 
 /**
