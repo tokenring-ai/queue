@@ -1,6 +1,6 @@
 import Agent from "@tokenring-ai/agent/Agent";
-import runChat from "@tokenring-ai/ai-client/runChat";
 import * as checkpoint from "@tokenring-ai/agent/commands/checkpoint";
+import runChat from "@tokenring-ai/ai-client/runChat";
 import WorkQueueService from "../WorkQueueService.ts";
 
 /**
@@ -15,7 +15,7 @@ export async function execute(
   remainder: string,
   agent: Agent,
 ): Promise<void> {
-  const workQueueService = agent.requireFirstServiceByType(WorkQueueService);
+  const workQueueService = agent.requireServiceByType(WorkQueueService);
 
   const [action, ...args] = (remainder ?? "").trim().split(/\s+/);
 

@@ -1,5 +1,4 @@
 import Agent from "@tokenring-ai/agent/Agent";
-import AIService from "@tokenring-ai/ai-client/AIService";
 import {z} from "zod";
 import WorkQueueService from "../WorkQueueService.ts";
 
@@ -12,7 +11,7 @@ export async function execute(
   {description, content}: { description?: string; content?: string },
   agent: Agent,
 ): Promise<{ status: string; message: string }> {
-  const workQueueService = agent.requireFirstServiceByType(WorkQueueService);
+  const workQueueService = agent.requireServiceByType(WorkQueueService);
 
   // Prefix all chat output with the tool name
   agent.infoLine(`[${name}] Added task "${description}" to queue`);
