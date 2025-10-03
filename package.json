@@ -1,22 +1,22 @@
 {
- "name": "@tokenring-ai/queue",
- "version": "0.1.0",
- "description": "Queue for Token Ring",
- "dependencies": {
-  "@tokenring-ai/ai-client": "0.1.0",
-  "@tokenring-ai/agent": "0.1.0"
- },
- "exports": {
-  ".": "./index.ts",
-  "./*": "./*.ts"
- },
- "license": "MIT",
- "scripts": {
-  "build": "tsc -p ."
- },
- "types": "./index.d.ts",
- "devDependencies": {
-  "typescript": "^5.9.2"
- },
- "type": "module"
+	"name": "@tokenring-ai/queue",
+	"version": "0.1.0",
+	"description": "Queue for Token Ring",
+	"dependencies": {
+		"@tokenring-ai/ai-client": "0.1.0",
+		"@tokenring-ai/agent": "0.1.0"
+	},
+	"exports": {
+		".": "./index.ts",
+		"./*": "./*.ts"
+	},
+	"license": "MIT",
+	"scripts": {
+		"build": "tsc -p ."
+	},
+	"types": "./index.d.ts",
+	"devDependencies": {
+		"typescript": "^5.9.3"
+	},
+	"type": "module"
 }
