@@ -1,5 +1,4 @@
-import type { AgentStateSlice } from "@tokenring-ai/agent/Agent";
-import type { AgentCheckpointData } from "@tokenring-ai/agent/AgentCheckpointProvider";
+import type {AgentCheckpointData, AgentStateSlice} from "@tokenring-ai/agent/Agent";
 import type { ResetWhat } from "@tokenring-ai/agent/AgentEvents";
 import type { ChatInputMessage } from "@tokenring-ai/ai-client/client/AIChatClient";
 

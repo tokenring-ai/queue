@@ -1,5 +1,5 @@
 import Agent from "@tokenring-ai/agent/Agent";
-import * as checkpoint from "@tokenring-ai/agent/commands/checkpoint";
+import * as checkpoint from "@tokenring-ai/checkpoint/commands/checkpoint";
 import runChat from "@tokenring-ai/ai-client/runChat";
 import WorkQueueService from "../WorkQueueService.ts";
 

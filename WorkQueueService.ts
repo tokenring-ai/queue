@@ -1,5 +1,5 @@
 import { Agent } from "@tokenring-ai/agent";
-import type { AgentCheckpointData } from "@tokenring-ai/agent/AgentCheckpointProvider";
+import {AgentCheckpointData} from "@tokenring-ai/agent/Agent";
 import type { TokenRingService } from "@tokenring-ai/agent/types";
 import type { QueueItem } from "./state/workQueueState.js";
 import { WorkQueueState } from "./state/workQueueState.js";
