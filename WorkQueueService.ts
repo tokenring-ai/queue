@@ -1,8 +1,7 @@
-import { Agent } from "@tokenring-ai/agent";
-import {AgentCheckpointData} from "@tokenring-ai/agent/Agent";
-import type { TokenRingService } from "@tokenring-ai/agent/types";
-import type { QueueItem } from "./state/workQueueState.js";
-import { WorkQueueState } from "./state/workQueueState.js";
+import {Agent} from "@tokenring-ai/agent";
+import type {AgentCheckpointData, TokenRingService} from "@tokenring-ai/agent/types";
+import type {QueueItem} from "./state/workQueueState.js";
+import {WorkQueueState} from "./state/workQueueState.js";
 
 /**
  * A service for managing a queue of work items.
