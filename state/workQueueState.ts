@@ -43,4 +43,12 @@ export class WorkQueueState implements AgentStateSlice {
 		this.initialCheckpoint = data.initialCheckpoint;
 		this.queue = data.queue;
 	}
+
+  show(): string[] {
+    return [
+      `Started: ${this.started}`,
+      `Queue Items: ${this.queue.length}`,
+      `Current Item: ${this.currentItem?.name || "None"}`
+    ];
+  }
 }
