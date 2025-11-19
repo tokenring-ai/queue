@@ -2,9 +2,16 @@
 
 ## Overview
 
-The `@tokenring-ai/queue` package provides a lightweight, in-memory queue management system for the Token Ring AI agent framework. It enables the queuing of work items, such as chat prompts or tasks, to be processed sequentially while preserving and restoring agent state via checkpoints. The package includes a core service (`WorkQueueService`) for programmatic queue operations, a chat command (`/queue`) for interactive management in chat interfaces, and a tool (`addTaskToQueue`) for enqueuing tasks programmatically. It plays a key role in batching and deferred execution of AI agent tasks, ensuring stateful processing without losing conversation context.
+The `@tokenring-ai/queue` package provides a lightweight, in-memory queue management system for the Token Ring AI agent
+framework. It enables the queuing of work items, such as chat prompts or tasks, to be processed sequentially while
+preserving and restoring agent state via checkpoints. The package includes a core service (`WorkQueueService`) for
+programmatic queue operations, a chat command (`/queue`) for interactive management in chat interfaces, and a tool (
+`addTaskToQueue`) for enqueuing tasks programmatically. It plays a key role in batching and deferred execution of AI
+agent tasks, ensuring stateful processing without losing conversation context.
 
-The queue operates as a FIFO (First-In-First-Out) structure, with optional size limits. Items are stored in memory and lost on process restart. Integration with the agent's checkpoint system allows pausing and resuming queue processing by snapshotting the agent's state.
+The queue operates as a FIFO (First-In-First-Out) structure, with optional size limits. Items are stored in memory and
+lost on process restart. Integration with the agent's checkpoint system allows pausing and resuming queue processing by
+snapshotting the agent's state.
 
 ## Installation/Setup
 
@@ -24,7 +31,8 @@ This package is a TypeScript module designed for use within the Token Ring ecosy
    npm run build  # Runs `tsc -p .` to compile TypeScript
    ```
 
-Dependencies are automatically resolved via the package's `package.json`. The package exports ES modules (type: \"module\") and requires TypeScript for development.
+Dependencies are automatically resolved via the package's `package.json`. The package exports ES modules (type:
+\"module\") and requires TypeScript for development.
 
 To integrate into a Token Ring agent:
 
@@ -42,7 +50,8 @@ await workQueue.attach(agent);
 
 The package is structured as a simple TypeScript project under `pkg/queue/`:
 
-- `index.ts`: Main entry point exporting the `TokenRingPackage` info (name, version, description, chatCommands, tools) and `WorkQueueService`.
+- `index.ts`: Main entry point exporting the `TokenRingPackage` info (name, version, description, chatCommands, tools)
+  and `WorkQueueService`.
 - `WorkQueueService.ts`: Core queue management service implementing `TokenRingService`.
 - `chatCommands.ts`: Exports chat commands (e.g., `/queue`).
 - `commands/queue.ts`: Implementation of the `/queue` chat command for interactive queue management.
@@ -60,9 +69,13 @@ Directories like `commands/` and `tools/` organize sub-modules.
 
 ### WorkQueueService
 
-The primary service for queue operations. It maintains an internal `WorkQueueState` slice for the agent's state, tracking the queue, lifecycle flags, and checkpoints.
+The primary service for queue operations. It maintains an internal `WorkQueueState` slice for the agent's state,
+tracking the queue, lifecycle flags, and checkpoints.
 
-**Description**: Manages a queue of `QueueItem` objects (`{ checkpoint: AgentCheckpointData; name: string; input: ChatInputMessage[] }`). Provides CRUD operations, lifecycle control, and state preservation for processing items in an AI agent context. Attaches to an `Agent` instance to mutate its state.
+**Description**: Manages a queue of `QueueItem` objects (
+`{ checkpoint: AgentCheckpointData; name: string; input: ChatInputMessage[] }`). Provides CRUD operations, lifecycle
+control, and state preservation for processing items in an AI agent context. Attaches to an `Agent` instance to mutate
+its state.
 
 **Key Methods**:
 
@@ -71,24 +84,30 @@ The primary service for queue operations. It maintains an internal `WorkQueueSta
 - `startWork(agent: Agent)`: Sets `started = true`.
 - `stopWork(agent: Agent)`: Sets `started = false` and clears current item.
 - `started(agent: Agent): boolean`: Checks if processing is active.
-- `setInitialCheckpoint(checkpoint: AgentCheckpointData, agent: Agent)` / `getInitialCheckpoint(agent: Agent): AgentCheckpointData | null` / `clearInitialCheckpoint(agent: Agent)`: Manages the starting checkpoint for queue sessions.
-- `setCurrentItem(item: QueueItem | null, agent: Agent)` / `getCurrentItem(agent: Agent): QueueItem | null`: Tracks the active item.
+- `setInitialCheckpoint(checkpoint: AgentCheckpointData, agent: Agent)` /
+  `getInitialCheckpoint(agent: Agent): AgentCheckpointData | null` / `clearInitialCheckpoint(agent: Agent)`: Manages the
+  starting checkpoint for queue sessions.
+- `setCurrentItem(item: QueueItem | null, agent: Agent)` / `getCurrentItem(agent: Agent): QueueItem | null`: Tracks the
+  active item.
 - `enqueue(item: QueueItem, agent: Agent): boolean`: Adds to end of queue (returns false if full).
 - `dequeue(agent: Agent): QueueItem | undefined`: Removes and returns front item.
 - `get(idx: number, agent: Agent): QueueItem`: Retrieves item by index.
-- `splice(start: number, deleteCount: number, agent: Agent, ...items: QueueItem[]): QueueItem[]`: Modifies queue like Array.splice.
+- `splice(start: number, deleteCount: number, agent: Agent, ...items: QueueItem[]): QueueItem[]`: Modifies queue like
+  Array.splice.
 - `size(agent: Agent): number`: Current queue length.
 - `isEmpty(agent: Agent): boolean`: Checks if queue is empty.
 - `clear(agent: Agent)`: Empties the queue.
 - `getAll(agent: Agent): QueueItem[]`: Returns a copy of all items.
 
-**Interactions**: All methods interact with the agent's state via `mutateState` or `getState`. Checkpoints ensure state restoration during queue processing.
+**Interactions**: All methods interact with the agent's state via `mutateState` or `getState`. Checkpoints ensure state
+restoration during queue processing.
 
 ### /queue Chat Command
 
 An interactive command for managing the queue via chat input. Exported via `chatCommands.queue`.
 
-**Description**: Handles subcommands to add/remove/list items, start/stop processing, and execute items. Integrates with `runChat` for executing queued inputs and checkpoints for state management.
+**Description**: Handles subcommands to add/remove/list items, start/stop processing, and execute items. Integrates with
+`runChat` for executing queued inputs and checkpoints for state management.
 
 **Key Subcommands** (invoked as `/queue <action> [args]`):
 
@@ -102,7 +121,8 @@ An interactive command for managing the queue via chat input. Exported via `chat
 - `skip`: Moves current item to end of queue.
 - `run`: Executes the current item's input via `runChat`, restoring its checkpoint first.
 
-**Interactions**: Uses `WorkQueueService` for queue ops, agent's `infoLine`/`errorLine` for feedback, and checkpoints to bound sessions.
+**Interactions**: Uses `WorkQueueService` for queue ops, agent's `infoLine`/`errorLine` for feedback, and checkpoints to
+bound sessions.
 
 ### addTaskToQueue Tool
 
@@ -112,9 +132,13 @@ A programmatic tool for enqueuing tasks. Exported via `tools.addTaskToQueue`.
 
 **Key Function**:
 
-- `async execute({ description, content }: { description?: string; content?: string }, agent: Agent): Promise<{ status: string; message: string }>`: Validates inputs, enqueues `{ checkpoint, name: description, input: [{ role: 'user', content }] }`. Throws if description or content missing.
+-
+`async execute({ description, content }: { description?: string; content?: string }, agent: Agent): Promise<{ status: string; message: string }>`:
+Validates inputs, enqueues `{ checkpoint, name: description, input: [{ role: 'user', content }] }`. Throws if
+description or content missing.
 
-**Input Schema** (Zod): `description` (string, short task name), `content` (string, detailed instructions for AI execution).
+**Input Schema** (Zod): `description` (string, short task name), `content` (string, detailed instructions for AI
+execution).
 
 **Interactions**: Requires `WorkQueueService` from the agent; logs via `agent.infoLine`.
 
@@ -178,22 +202,27 @@ await tools.addTaskToQueue.execute(
 
 ## Configuration Options
 
-- **maxSize** (number, optional): Limits queue length in `WorkQueueService` constructor. Defaults to unlimited. Enqueue fails silently if exceeded.
+- **maxSize** (number, optional): Limits queue length in `WorkQueueService` constructor. Defaults to unlimited. Enqueue
+  fails silently if exceeded.
 - No environment variables or external configs; all via constructor or agent state.
 - For chat/tool usage, no additional config needed beyond agent setup.
 
 ## API Reference
 
 ### WorkQueueService
+
 - See Core Components for full method signatures.
-- Public: All methods listed; internal state via `WorkQueueState` (implements `AgentStateSlice` with `reset`, `serialize`, `deserialize`).
+- Public: All methods listed; internal state via `WorkQueueState` (implements `AgentStateSlice` with `reset`,
+  `serialize`, `deserialize`).
 
 ### /queue Command
+
 - `export const description = '/queue <command> - Manage a queue of chat prompts' as const;`
 - `async execute(remainder: string, agent: Agent): Promise<void>`
 - `export function help(): string[]` - Returns usage strings.
 
 ### addTaskToQueue Tool
+
 - `export const name = 'queue/addTaskToQueue' as const;`
 - `export const description = 'Adds a task to the queue for later execution by the system.' as const;`
 - `export const inputSchema = z.object({ description: z.string(), content: z.string() });`
@@ -212,8 +241,10 @@ Package exports: `{ packageInfo: TokenRingPackage, default: WorkQueueService }`.
 
 - **Testing**: Run tests with `npm test` (assumes Jest setup in `test/`).
 - **Building**: `npm run build` compiles to JS.
-- **Limitations**: In-memory only (no persistence); single-agent use; queue items must match `QueueItem` shape for full compatibility with commands/tools. No distributed or concurrent processing.
-- **Best Practices**: Always restore checkpoints before executing items to maintain state. Use `maxSize` for bounded memory. Extend `WorkQueueState` for custom serialization if needed.
+- **Limitations**: In-memory only (no persistence); single-agent use; queue items must match `QueueItem` shape for full
+  compatibility with commands/tools. No distributed or concurrent processing.
+- **Best Practices**: Always restore checkpoints before executing items to maintain state. Use `maxSize` for bounded
+  memory. Extend `WorkQueueState` for custom serialization if needed.
 - Contributions: Fork, add features/tests, PR with TypeScript compliance. Focus on agent integration.
 
 MIT License (see LICENSE).
