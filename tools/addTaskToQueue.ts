@@ -1,14 +1,15 @@
 import Agent from "@tokenring-ai/agent/Agent";
+import {TokenRingToolDefinition} from "@tokenring-ai/chat/types";
 import {z} from "zod";
 import WorkQueueService from "../WorkQueueService.ts";
 
 /**
  * Adds a task to the work queue for later execution
  */
-export const name = "queue/addTaskToQueue" as const;
+const name = "queue/addTaskToQueue" as const;
 
-export async function execute(
-  {description, content}: { description?: string; content?: string },
+async function execute(
+  {description, content}: z.infer<typeof inputSchema>,
   agent: Agent,
 ): Promise<{ status: string; message: string }> {
   const workQueueService = agent.requireServiceByType(WorkQueueService);
@@ -39,10 +40,10 @@ export async function execute(
   };
 }
 
-export const description =
+const description =
   "Adds a task to the queue for later execution by the system." as const;
 
-export const inputSchema = z.object({
+const inputSchema = z.object({
   description: z
     .string()
     .describe("A short description of the task to be performed"),
@@ -54,3 +55,7 @@ export const inputSchema = z.object({
       "and should directly order the AI agent to execute the task, using the tools that are available to it.",
     ),
 });
+
+export default {
+  name, description, inputSchema, execute,
+} as TokenRingToolDefinition<typeof inputSchema>;

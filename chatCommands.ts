@@ -1,1 +1,1 @@
-export * as queue from "./commands/queue.ts";
+export {default as queue} from "./commands/queue.ts";

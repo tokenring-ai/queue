@@ -1,6 +1,7 @@
 import Agent from "@tokenring-ai/agent/Agent";
+import {TokenRingAgentCommand} from "@tokenring-ai/agent/types";
 import runChat from "@tokenring-ai/chat/runChat";
-import * as checkpoint from "@tokenring-ai/checkpoint/commands/checkpoint";
+import {execute as checkpoint} from "@tokenring-ai/checkpoint/commands/checkpoint";
 import WorkQueueService from "../WorkQueueService.ts";
 
 /**
@@ -9,10 +10,10 @@ import WorkQueueService from "../WorkQueueService.ts";
  * Queue is stored on state.queue as an array of prompt strings.
  */
 
-export const description =
+const description =
   "/queue <command> - Manage a queue of chat prompts" as const;
 
-export async function execute(remainder: string, agent: Agent): Promise<void> {
+async function execute(remainder: string, agent: Agent): Promise<void> {
   const workQueueService = agent.requireServiceByType(WorkQueueService);
 
   const [action, ...args] = (remainder ?? "").trim().split(/\s+/);
@@ -102,7 +103,7 @@ export async function execute(remainder: string, agent: Agent): Promise<void> {
       workQueueService.setInitialCheckpoint(agent.generateCheckpoint(), agent);
       workQueueService.startWork(agent);
 
-      await checkpoint.execute("create Start of queue operation", agent);
+      await checkpoint("create Start of queue operation", agent);
       agent.infoLine(
         "Queue started, use /queue next to start working on the first item in the queue, or /queue done to end the queue.",
       );
@@ -119,7 +120,7 @@ export async function execute(remainder: string, agent: Agent): Promise<void> {
 
       const currentItem = workQueueService.getCurrentItem(agent);
 
-      await checkpoint.execute(
+      await checkpoint(
         `create End of queue operation: ${currentItem?.name ?? "unknown"}`,
         agent,
       );
@@ -230,3 +231,8 @@ export function help(): string[] {
     "  - done: End queue processing and restore previous state",
   ];
 }
+export default {
+  description,
+  execute,
+  help,
+} as TokenRingAgentCommand

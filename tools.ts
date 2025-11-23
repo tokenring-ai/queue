@@ -1,1 +1,1 @@
-export * as addTaskToQueue from "./tools/addTaskToQueue.ts";
+export {default as addTaskToQueue} from "./tools/addTaskToQueue.ts";
