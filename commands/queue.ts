@@ -215,7 +215,7 @@ async function execute(remainder: string, agent: Agent): Promise<void> {
 }
 
 // noinspection JSUnusedGlobalSymbols
-export function help(): string[] {
+function help(): string[] {
   return [
     "/queue [add|remove|clear|list|run|start|next|skip|done] [args...]",
     "  - With no arguments: shows command help",
