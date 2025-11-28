@@ -1,4 +1,4 @@
-import ChatCommandRegistry from "@tokenring-ai/registry/ChatCommandRegistry";
+import ChatCommandRegistry from "@tokenring-ai/agent";
 import {afterEach, beforeEach, describe, expect, it, vi} from "vitest";
 import WorkQueueService from "../WorkQueueService.ts";
 

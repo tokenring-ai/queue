@@ -5,13 +5,13 @@ import {execute as checkpoint} from "@tokenring-ai/checkpoint/commands/checkpoin
 import WorkQueueService from "../WorkQueueService.ts";
 
 /**
- * /queue add|remove|clear|list|run <args>
+ * /queue add|remove|clear|list|run|start|next|skip|done <args>
  * Manages a queue of chat prompt strings to run.
- * Queue is stored on state.queue as an array of prompt strings.
+ * Queue is stored in state.queue as an array of prompt strings.
  */
 
 const description =
-  "/queue <command> - Manage a queue of chat prompts" as const;
+  "/queue - Manage a queue of chat prompts" as const;
 
 async function execute(remainder: string, agent: Agent): Promise<void> {
   const workQueueService = agent.requireServiceByType(WorkQueueService);
@@ -209,28 +209,103 @@ async function execute(remainder: string, agent: Agent): Promise<void> {
     }
 
     default: {
-      help();
+      agent.chatOutput(help);
     }
   }
 }
 
-// noinspection JSUnusedGlobalSymbols
-function help(): string[] {
-  return [
-    "/queue [add|remove|clear|list|run|start|next|skip|done] [args...]",
-    "  - With no arguments: shows command help",
-    "  - add <prompt>: Add a new prompt to the end of the queue",
-    "  - remove <index>: Remove the prompt at the given zero-based index",
-    "  - update <index> <prompt>: Replace the prompt at given index",
-    "  - clear: Remove all prompts from the queue",
-    "  - list: Display all queued prompts with their indices",
-    "  - start: Begin queue processing",
-    "  - next: Load the next queued item (does not execute it)",
-    "  - run: Execute the currently loaded queued prompt",
-    "  - skip: Skip current item and re-add to end of queue",
-    "  - done: End queue processing and restore previous state",
-  ];
-}
+const help: string = `# 📋 QUEUE COMMAND HELP
+
+The /queue command manages a queue of chat prompts for batch processing. Use these commands to organize, manage, and execute your prompts efficiently.
+
+## 🔧 QUEUE MANAGEMENT COMMANDS
+
+### /queue add <prompt>
+
+Add a new prompt to the end of the queue
+
+**Example:**
+/queue add 'Write a Python function to calculate Fibonacci numbers'
+
+### /queue remove <index>
+
+Remove the prompt at the given zero-based index
+
+**Example:**
+/queue remove 2
+
+### /queue details <index>
+
+Show detailed information about a specific queue item
+
+**Example:**
+/queue details 0
+
+### /queue clear
+
+Remove all prompts from the queue
+
+**Example:**
+/queue clear
+
+### /queue list
+
+Display all queued prompts with their indices
+
+**Example:**
+/queue list
+
+## 🚀 QUEUE PROCESSING COMMANDS
+
+### /queue start
+
+Begin queue processing (preserves current chat state)
+
+**Example:**
+/queue start
+
+### /queue next
+
+Load the next queued item (does not execute it)
+
+**Example:**
+/queue next
+
+### /queue run
+
+Execute the currently loaded queued prompt
+
+**Example:**
+/queue run
+
+### /queue skip
+
+Skip current item and re-add to end of queue
+
+**Example:**
+/queue skip
+
+### /queue done
+
+End queue processing and restore previous chat state
+
+**Example:**
+/queue done
+
+## 💡 USAGE TIPS
+
+1. Use /queue add to build up a list of prompts you want to process
+2. Use /queue start to begin processing (this preserves your current chat state)
+3. Use /queue next to load each prompt, then /queue run to execute it
+4. Use /queue skip to defer a prompt for later processing
+5. Use /queue done to finish and restore your original chat state
+
+## 📊 QUEUE STATUS
+
+- **Queue length**: Use /queue list to see current queue size
+- **Processing status**: Queue is either idle or started (use /queue start to begin)
+- **Current item**: Shows which item is loaded (use /queue next to load next)`;
+
 export default {
   description,
   execute,
