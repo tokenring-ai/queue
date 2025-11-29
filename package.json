@@ -1,10 +1,14 @@
 {
  "name": "@tokenring-ai/queue",
- "version": "0.1.0",
+ "version": "0.2.0",
  "description": "Queue for Token Ring",
  "dependencies": {
-  "@tokenring-ai/chat": "0.1.0",
-  "@tokenring-ai/agent": "0.1.0"
+  "@tokenring-ai/ai-client": "0.2.0",
+  "@tokenring-ai/app": "0.2.0",
+  "zod": "^4.1.13",
+  "@tokenring-ai/chat": "0.2.0",
+  "@tokenring-ai/checkpoint": "0.2.0",
+  "@tokenring-ai/agent": "0.2.0"
  },
  "exports": {
   ".": "./index.ts",
