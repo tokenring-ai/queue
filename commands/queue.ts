@@ -1,5 +1,6 @@
 import Agent from "@tokenring-ai/agent/Agent";
 import {TokenRingAgentCommand} from "@tokenring-ai/agent/types";
+import {ChatService} from "@tokenring-ai/chat";
 import runChat from "@tokenring-ai/chat/runChat";
 import {execute as checkpoint} from "@tokenring-ai/checkpoint/commands/checkpoint";
 import WorkQueueService from "../WorkQueueService.ts";
@@ -30,7 +31,7 @@ async function execute(remainder: string, agent: Agent): Promise<void> {
         {
           checkpoint: agent.generateCheckpoint(),
           name: prompt,
-          input: [{role: "user", content: prompt}],
+          input: prompt,
         },
         agent,
       );
@@ -193,13 +194,12 @@ async function execute(remainder: string, agent: Agent): Promise<void> {
       const {input, checkpoint} = currentItem;
       agent.restoreCheckpoint(checkpoint);
 
+      const chatService = agent.requireServiceByType(ChatService);
+      const chatConfig = chatService.getChatConfig(agent);
+
       try {
-        await runChat(
-          {
-            input,
-          },
-          agent,
-        );
+        const chatConfig = chatService.getChatConfig(agent);
+        await runChat(input, chatConfig, agent);
       } catch (error: any) {
         agent.errorLine(
           `Error running queued prompt: ${error.message || error}`,

@@ -5,7 +5,7 @@ import type {ChatInputMessage} from "@tokenring-ai/ai-client/client/AIChatClient
 export type QueueItem = {
   checkpoint: AgentCheckpointData;
   name: string;
-  input: ChatInputMessage[];
+  input: string;
 };
 
 export class WorkQueueState implements AgentStateSlice {

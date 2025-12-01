@@ -29,7 +29,7 @@ async function execute(
     {
       checkpoint: agent.generateCheckpoint(),
       name: description,
-      input: [{role: "user", content}],
+      input: content
     },
     agent,
   );
