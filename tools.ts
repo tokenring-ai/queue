@@ -1,4 +1,4 @@
-import {default as addTaskToQueue} from "./tools/addTaskToQueue.ts";
+import addTaskToQueue from "./tools/addTaskToQueue.ts";
 
 export default {
   addTaskToQueue,
