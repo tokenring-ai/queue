@@ -129,7 +129,7 @@ async function execute(remainder: string, agent: Agent): Promise<void> {
       if (action === "done" || workQueueService.isEmpty(agent)) {
         const initialCheckpoint = workQueueService.getInitialCheckpoint(agent);
         if (initialCheckpoint) {
-          agent.restoreCheckpoint(initialCheckpoint);
+          agent.restoreState(initialCheckpoint.state);
         } else {
           agent.errorLine(
             "Couldn't restore initial state, no initial checkpoint found",
@@ -192,7 +192,7 @@ async function execute(remainder: string, agent: Agent): Promise<void> {
       }
 
       const {input, checkpoint} = currentItem;
-      agent.restoreCheckpoint(checkpoint);
+      agent.restoreState(checkpoint.state)
 
       const chatService = agent.requireServiceByType(ChatService);
       const chatConfig = chatService.getChatConfig(agent);
