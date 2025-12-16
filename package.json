@@ -5,7 +5,7 @@
   "dependencies": {
     "@tokenring-ai/ai-client": "0.2.0",
     "@tokenring-ai/app": "0.2.0",
-    "zod": "^4.1.13",
+    "zod": "catalog:",
     "@tokenring-ai/chat": "0.2.0",
     "@tokenring-ai/checkpoint": "0.2.0",
     "@tokenring-ai/agent": "0.2.0"
@@ -20,7 +20,7 @@
   },
   "types": "./index.d.ts",
   "devDependencies": {
-    "typescript": "^5.9.3"
+    "typescript": "catalog:"
   },
   "type": "module"
 }
