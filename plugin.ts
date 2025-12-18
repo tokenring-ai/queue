@@ -22,4 +22,4 @@ export default {
     );
     app.addServices(new WorkQueueService());
   },
-} as TokenRingPlugin;
+} satisfies TokenRingPlugin;
