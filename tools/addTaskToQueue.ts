@@ -6,7 +6,7 @@ import WorkQueueService from "../WorkQueueService.ts";
 /**
  * Adds a task to the work queue for later execution
  */
-const name = "queue/addTaskToQueue" as const;
+const name = "queue_addTaskToQueue";
 
 async function execute(
   {description, content}: z.infer<typeof inputSchema>,
