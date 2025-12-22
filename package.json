@@ -16,11 +16,15 @@
   },
   "license": "MIT",
   "scripts": {
-    "build": "tsc -p ."
+    "build": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "types": "./index.d.ts",
   "devDependencies": {
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   },
   "type": "module"
 }
