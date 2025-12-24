@@ -9,7 +9,7 @@ The `@tokenring-ai/queue` package provides a sophisticated queue management syst
 ## Installation
 
 ```bash
-npm install @tokenring-ai/queue
+bun install @tokenring-ai/queue
 ```
 
 ## Package Structure
@@ -84,6 +84,8 @@ interface WorkQueueServiceOptions {
 State management for queue operations:
 
 ```typescript
+import type { QueueItem } from "@tokenring-ai/queue/state/workQueueState";
+
 interface QueueItem {
   checkpoint: AgentCheckpointData;
   name: string;
@@ -480,12 +482,12 @@ The queue system provides comprehensive error handling:
 
 ### Building
 ```bash
-npm run build
+bun run build
 ```
 
 ### Testing
 ```bash
-npm test
+bun run test
 ```
 
 ### Plugin Development
