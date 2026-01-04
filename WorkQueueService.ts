@@ -21,7 +21,7 @@ export default class WorkQueueService implements TokenRingService {
     this.maxSize = maxSize;
   }
 
-  async attach(agent: Agent): Promise<void> {
+  attach(agent: Agent): void {
     agent.initializeState(WorkQueueState, {});
   }
 
