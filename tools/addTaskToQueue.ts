@@ -15,7 +15,7 @@ async function execute(
   const workQueueService = agent.requireServiceByType(WorkQueueService);
 
   // Prefix all chat output with the tool name
-  agent.infoLine(`[${name}] Added task "${description}" to queue`);
+  agent.infoMessage(`[${name}] Added task "${description}" to queue`);
 
   if (!description) {
     throw new Error(`[${name}] Task description is required`);

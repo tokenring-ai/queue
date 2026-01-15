@@ -3,6 +3,7 @@ import {TokenRingAgentCommand} from "@tokenring-ai/agent/types";
 import {ChatService} from "@tokenring-ai/chat";
 import runChat from "@tokenring-ai/chat/runChat";
 import {execute as checkpoint} from "@tokenring-ai/checkpoint/commands/checkpoint";
+import numberedList from "@tokenring-ai/utility/string/numberedList";
 import WorkQueueService from "../WorkQueueService.ts";
 
 /**
@@ -23,7 +24,7 @@ async function execute(remainder: string, agent: Agent): Promise<void> {
     case "add": {
       const prompt = args.join(" ");
       if (!prompt) {
-        agent.errorLine("Usage: /queue add <prompt>");
+        agent.errorMessage("Usage: /queue add <prompt>");
         return;
       }
 
@@ -36,7 +37,7 @@ async function execute(remainder: string, agent: Agent): Promise<void> {
         agent,
       );
 
-      agent.infoLine(
+      agent.infoMessage(
         `Added to queue. Queue length: ${workQueueService.size(agent)}`,
       );
       break;
@@ -45,11 +46,11 @@ async function execute(remainder: string, agent: Agent): Promise<void> {
       const idx = Number.parseInt(args[0], 10);
 
       if (Number.isNaN(idx) || idx < 0 || idx >= workQueueService.size(agent)) {
-        agent.errorLine("Usage: /queue remove <index>  (index starts from 0)");
+        agent.errorMessage("Usage: /queue remove <index>  (index starts from 0)");
         return;
       }
       const removed = workQueueService.splice(idx, 1, agent)[0];
-      agent.infoLine(
+      agent.infoMessage(
         `Removed \"${removed.name}\" from queue. Remaining: ${workQueueService.size(agent)}`,
       );
       break;
@@ -59,43 +60,43 @@ async function execute(remainder: string, agent: Agent): Promise<void> {
       const idx = Number.parseInt(args[0], 10);
 
       if (Number.isNaN(idx) || idx < 0 || idx >= workQueueService.size(agent)) {
-        agent.errorLine("Usage: /queue details <index>  (index starts from 0)");
+        agent.errorMessage("Usage: /queue details <index>  (index starts from 0)");
         return;
       }
       const item = workQueueService.get(idx, agent);
-      agent.infoLine(`Queue item details:`);
-      JSON.stringify(item, null, 2)
-        .split("")
-        .forEach((line) => agent.infoLine(line));
+      const lines: string[] = ["Queue item details:"];
+      lines.push(...JSON.stringify(item, null, 2).split("\n"));
+      agent.infoMessage(lines.join("\n"));
 
       break;
     }
     case "clear": {
       workQueueService.clear(agent);
-      agent.infoLine("Queue cleared!");
+      agent.infoMessage("Queue cleared!");
       break;
     }
 
     case "list": {
       if (workQueueService.size(agent) === 0) {
-        agent.infoLine("Queue is empty.");
+        agent.infoMessage("Queue is empty.");
         return;
       }
-      agent.infoLine("Queue contents:");
-      workQueueService.getAll(agent).forEach(({name}: any, i: number) => {
-        agent.infoLine(`[${i}] ${name}`);
-      });
+      const lines: string[] = [
+        "Queue contents:",
+        numberedList(workQueueService.getAll(agent).map(({name}) => name))
+      ];
+      agent.infoMessage(lines.join("\n"));
       break;
     }
 
     case "start": {
       if (workQueueService.isEmpty(agent)) {
-        agent.infoLine("Queue is empty.");
+        agent.infoMessage("Queue is empty.");
         return;
       }
 
       if (workQueueService.started(agent)) {
-        agent.infoLine(
+        agent.infoMessage(
           "Queue already started. Use /queue next to load the next item in the queue, or queue done to end the queue.",
         );
         return;
@@ -105,7 +106,7 @@ async function execute(remainder: string, agent: Agent): Promise<void> {
       workQueueService.startWork(agent);
 
       await checkpoint("create Start of queue operation", agent);
-      agent.infoLine(
+      agent.infoMessage(
         "Queue started, use /queue next to start working on the first item in the queue, or /queue done to end the queue.",
       );
       break;
@@ -113,7 +114,7 @@ async function execute(remainder: string, agent: Agent): Promise<void> {
     case "next":
     case "done": {
       if (!workQueueService.started(agent)) {
-        agent.infoLine(
+        agent.infoMessage(
           "Queue not started. Use /queue start to start the queue.",
         );
         return;
@@ -131,22 +132,22 @@ async function execute(remainder: string, agent: Agent): Promise<void> {
         if (initialCheckpoint) {
           agent.restoreState(initialCheckpoint.state);
         } else {
-          agent.errorLine(
+          agent.errorMessage(
             "Couldn't restore initial state, no initial checkpoint found",
           );
         }
 
         workQueueService.stopWork(agent);
         if (action === "done") {
-          agent.infoLine("Restored chat state to preserved state.");
+          agent.infoMessage("Restored chat state to preserved state.");
         } else {
-          agent.infoLine("Queue complete.");
+          agent.infoMessage("Queue complete.");
         }
         return;
       }
 
       const newItem = workQueueService.dequeue(agent);
-      agent.infoLine(
+      agent.infoMessage(
         `Queue Item loaded: ${newItem?.name ?? "unknown"} Use /queue run to run the queue item, and /queue next|skip|done to move on to the next item.`,
       );
 
@@ -154,7 +155,7 @@ async function execute(remainder: string, agent: Agent): Promise<void> {
     }
     case "skip": {
       if (!workQueueService.started(agent)) {
-        agent.infoLine(
+        agent.infoMessage(
           "Queue not started. Use /queue start to start the queue.",
         );
         return;
@@ -162,7 +163,7 @@ async function execute(remainder: string, agent: Agent): Promise<void> {
 
       const currentItem = workQueueService.getCurrentItem(agent);
       if (!currentItem) {
-        agent.infoLine(
+        agent.infoMessage(
           "No queue item loaded. Use /queue next to load the next item in the queue, or queue done to end the queue.",
         );
         return;
@@ -170,14 +171,14 @@ async function execute(remainder: string, agent: Agent): Promise<void> {
 
       workQueueService.enqueue(currentItem, agent);
       workQueueService.setCurrentItem(null, agent);
-      agent.infoLine(
+      agent.infoMessage(
         "Queue item skipped. It has been added to the end of the queue in case you would like to run it later, and you can use /queue next to load the next item in the queue, or /queue done to end the queue.",
       );
       break;
     }
     case "run": {
       if (!workQueueService.started(agent)) {
-        agent.infoLine(
+        agent.infoMessage(
           "Queue not started. Use /queue start to start the queue.",
         );
         return;
@@ -185,7 +186,7 @@ async function execute(remainder: string, agent: Agent): Promise<void> {
 
       const currentItem = workQueueService.getCurrentItem(agent);
       if (!currentItem) {
-        agent.infoLine(
+        agent.infoMessage(
           "No queue item loaded. Use /queue next to load the next item in the queue, or queue done to end the queue.",
         );
         return;
@@ -201,7 +202,7 @@ async function execute(remainder: string, agent: Agent): Promise<void> {
         const chatConfig = chatService.getChatConfig(agent);
         await runChat(input, chatConfig, agent);
       } catch (error: any) {
-        agent.errorLine(
+        agent.errorMessage(
           `Error running queued prompt: ${error.message || error}`,
         );
       }
