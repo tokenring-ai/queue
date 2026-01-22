@@ -1,5 +1,6 @@
 import type {ResetWhat} from "@tokenring-ai/agent/AgentEvents";
 import {AgentCheckpointData, AgentStateSlice} from "@tokenring-ai/agent/types";
+import {z} from "zod";
 
 export type QueueItem = {
   checkpoint: AgentCheckpointData;
@@ -7,8 +8,20 @@ export type QueueItem = {
   input: string;
 };
 
-export class WorkQueueState implements AgentStateSlice {
+const serializationSchema = z.object({
+  queue: z.array(z.object({
+    checkpoint: z.any(),
+    name: z.string(),
+    input: z.string()
+  })),
+  started: z.boolean(),
+  currentItem: z.any().nullable(),
+  initialCheckpoint: z.any().nullable()
+});
+
+export class WorkQueueState implements AgentStateSlice<typeof serializationSchema> {
   name = "WorkQueueState";
+  serializationSchema = serializationSchema;
   /** The queue of work items. */
   queue: QueueItem[] = [];
   /** Whether the service has been started. */
@@ -27,7 +40,7 @@ export class WorkQueueState implements AgentStateSlice {
     }
   }
 
-  serialize(): object {
+  serialize(): z.output<typeof serializationSchema> {
     return {
       started: this.started,
       currentItem: this.currentItem,
@@ -36,7 +49,7 @@ export class WorkQueueState implements AgentStateSlice {
     };
   }
 
-  deserialize(data: any): void {
+  deserialize(data: z.output<typeof serializationSchema>): void {
     this.started = data.started;
     this.currentItem = data.currentItem;
     this.initialCheckpoint = data.initialCheckpoint;
