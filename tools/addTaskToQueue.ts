@@ -7,6 +7,7 @@ import WorkQueueService from "../WorkQueueService.ts";
  * Adds a task to the work queue for later execution
  */
 const name = "queue_addTaskToQueue";
+const displayName = "Queue/addTaskToQueue";
 
 async function execute(
   {description, content}: z.infer<typeof inputSchema>,
@@ -57,5 +58,5 @@ const inputSchema = z.object({
 });
 
 export default {
-  name, description, inputSchema, execute,
+  name, displayName, description, inputSchema, execute,
 } satisfies TokenRingToolDefinition<typeof inputSchema>;
