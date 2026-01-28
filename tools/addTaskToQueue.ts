@@ -1,5 +1,5 @@
 import Agent from "@tokenring-ai/agent/Agent";
-import {TokenRingToolDefinition} from "@tokenring-ai/chat/schema";
+import {TokenRingToolDefinition, type TokenRingToolJSONResult} from "@tokenring-ai/chat/schema";
 import {z} from "zod";
 import WorkQueueService from "../WorkQueueService.ts";
 
@@ -10,9 +10,9 @@ const name = "queue_addTaskToQueue";
 const displayName = "Queue/addTaskToQueue";
 
 async function execute(
-  {description, content}: z.infer<typeof inputSchema>,
+  {description, content}: z.output<typeof inputSchema>,
   agent: Agent,
-): Promise<{ status: string; message: string }> {
+): Promise<TokenRingToolJSONResult<{ status: string; message: string }>> {
   const workQueueService = agent.requireServiceByType(WorkQueueService);
 
   // Prefix all chat output with the tool name
@@ -36,8 +36,11 @@ async function execute(
   );
 
   return {
-    status: "queued",
-    message: `Task has been queued for later execution.`,
+    type: "json",
+    data: {
+      status: "queued",
+      message: `Task has been queued for later execution.`,
+    }
   };
 }
 
