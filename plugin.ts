@@ -5,10 +5,13 @@ import {z} from "zod";
 
 import chatCommands from "./chatCommands.ts";
 import packageJSON from "./package.json" with {type: "json"};
+import {WorkQueueServiceConfigSchema} from "./schema.ts";
 import tools from "./tools.ts";
 import WorkQueueService from "./WorkQueueService.js";
 
-const packageConfigSchema = z.object({});
+const packageConfigSchema = z.object({
+  queue: WorkQueueServiceConfigSchema.prefault({})
+});
 
 export default {
   name: packageJSON.name,
@@ -21,7 +24,7 @@ export default {
     app.waitForService(AgentCommandService, agentCommandService =>
       agentCommandService.addAgentCommands(chatCommands)
     );
-    app.addServices(new WorkQueueService());
+    app.addServices(new WorkQueueService(config.queue));
   },
   config: packageConfigSchema
 } satisfies TokenRingPlugin<typeof packageConfigSchema>;

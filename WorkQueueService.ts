@@ -1,6 +1,8 @@
 import {Agent} from "@tokenring-ai/agent";
 import type {AgentCheckpointData} from "@tokenring-ai/agent/types";
 import {TokenRingService} from "@tokenring-ai/app/types";
+import deepMerge from "@tokenring-ai/utility/object/deepMerge";
+import {type ParsedWorkQueueConfig, WorkQueueAgentConfigSchema} from "./schema.ts";
 import type {QueueItem} from "./state/workQueueState.js";
 import {WorkQueueState} from "./state/workQueueState.js";
 
@@ -9,20 +11,19 @@ import {WorkQueueState} from "./state/workQueueState.js";
  */
 export default class WorkQueueService implements TokenRingService {
   name = "WorkQueueService";
-  description = "Provides WorkQueue functionality";
+  description = "Provides Work Queue functionality";
 
-  /** The maximum size of the queue. */
-  readonly maxSize: number | undefined;
 
   /**
    * Creates a new WorkQueueService instance.
    */
-  constructor({maxSize}: { maxSize?: number } = {}) {
-    this.maxSize = maxSize;
+  constructor(private readonly options: ParsedWorkQueueConfig) {
   }
 
   attach(agent: Agent): void {
-    agent.initializeState(WorkQueueState, {});
+    let config = deepMerge(this.options.agentDefaults, agent.getAgentConfigSlice('queue', WorkQueueAgentConfigSchema.optional()));
+
+    agent.initializeState(WorkQueueState, config);
   }
 
   startWork(agent: Agent): void {
@@ -82,7 +83,7 @@ export default class WorkQueueService implements TokenRingService {
    */
   enqueue(item: QueueItem, agent: Agent): boolean {
     return agent.mutateState(WorkQueueState, (state: WorkQueueState) => {
-      if (this.maxSize && state.queue.length >= this.maxSize) {
+      if (state.maxSize && state.queue.length >= state.maxSize) {
         return false;
       }
       state.queue.push(item);

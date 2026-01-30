@@ -1,6 +1,7 @@
 import type {ResetWhat} from "@tokenring-ai/agent/AgentEvents";
 import {AgentCheckpointData, AgentStateSlice} from "@tokenring-ai/agent/types";
 import {z} from "zod";
+import type {WorkQueueAgentConfigSchema} from "../schema.ts";
 
 export type QueueItem = {
   checkpoint: AgentCheckpointData;
@@ -16,7 +17,8 @@ const serializationSchema = z.object({
   })),
   started: z.boolean(),
   currentItem: z.any().nullable(),
-  initialCheckpoint: z.any().nullable()
+  initialCheckpoint: z.any().nullable(),
+  maxSize: z.number().nullable(),
 });
 
 export class WorkQueueState implements AgentStateSlice<typeof serializationSchema> {
@@ -30,6 +32,11 @@ export class WorkQueueState implements AgentStateSlice<typeof serializationSchem
   initialCheckpoint: AgentCheckpointData | null = null;
   /** The current item being processed. */
   currentItem: QueueItem | null = null;
+  maxSize: number | null = null;
+
+  constructor(readonly initialConfig: z.output<typeof WorkQueueAgentConfigSchema>) {
+    this.maxSize = initialConfig.maxSize ?? null;
+  }
 
   reset(what: ResetWhat[]) {
     if (what.includes("chat")) {
@@ -46,6 +53,7 @@ export class WorkQueueState implements AgentStateSlice<typeof serializationSchem
       currentItem: this.currentItem,
       initialCheckpoint: this.initialCheckpoint,
       queue: this.queue,
+      maxSize: this.maxSize
     };
   }
 
@@ -54,6 +62,7 @@ export class WorkQueueState implements AgentStateSlice<typeof serializationSchem
     this.currentItem = data.currentItem;
     this.initialCheckpoint = data.initialCheckpoint;
     this.queue = data.queue;
+    this.maxSize = data.maxSize;
   }
 
   show(): string[] {
