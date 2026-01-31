@@ -47,12 +47,57 @@ The package provides the `/queue` command for managing queue operations.
 
 ## Plugin Configuration
 
-The plugin does not require any configuration options.
+The plugin configuration supports optional queue size limits through the `agentDefaults` option.
 
 ```typescript
 import queuePlugin from "@tokenring-ai/queue/plugin";
+
 const app = new TokenRingApp();
-app.install(queuePlugin);
+
+// Configure with optional queue size limit
+app.install(queuePlugin, {
+  queue: {
+    agentDefaults: {
+      maxSize: 50  // Optional: Maximum number of items in the queue
+    }
+  }
+});
+```
+
+### Configuration Schema
+
+```typescript
+{
+  queue: {
+    agentDefaults: {
+      maxSize?: number  // Optional: Maximum queue size (positive number)
+    }
+  }
+}
+```
+
+## Agent Configuration
+
+The queue service can be configured at the agent level to override default queue settings.
+
+```typescript
+const agentConfig = {
+  queue: {
+    maxSize: 100  // Override default queue size for this agent
+  }
+};
+
+const agent = new Agent(app, { config: agentConfig, headless: false });
+```
+
+### Agent Configuration Schema
+
+```typescript
+{
+  queue: {
+    maxSize?: number  // Optional: Maximum queue size for this agent
+  }
+}
 ```
 
 ## Tools
@@ -85,17 +130,17 @@ The central service for queue operations with comprehensive state management.
 
 **Constructor:**
 ```typescript
-new WorkQueueService(options: { maxSize?: number })
+new WorkQueueService(options: ParsedWorkQueueConfig)
 ```
 
 **Options:**
-- `maxSize?: number` - Optional maximum queue size (default: unlimited)
+- `agentDefaults?: { maxSize?: number }` - Default configuration for agent state
 
 #### Lifecycle Management Methods
 
 | Method | Description | Parameters | Returns |
 |--------|-------------|------------|---------|
-| `attach(agent)` | Initialize queue state on agent | `agent: Agent` | `Promise<void>` |
+| `attach(agent)` | Initialize queue state on agent | `agent: Agent` | `void` |
 | `startWork(agent)` | Start queue processing | `agent: Agent` | `void` |
 | `stopWork(agent)` | Stop processing and clear current item | `agent: Agent` | `void` |
 | `started(agent)` | Check if queue is active | `agent: Agent` | `boolean` |
@@ -140,6 +185,7 @@ State management for queue operations.
 | `started` | `boolean` | Whether queue processing is active |
 | `initialCheckpoint` | `AgentCheckpointData \| null` | Preserved starting state |
 | `currentItem` | `QueueItem \| null` | Currently processing item |
+| `maxSize` | `number \| null` | Maximum queue size (if configured) |
 
 **Methods:**
 
@@ -169,7 +215,7 @@ import Agent from "@tokenring-ai/agent";
 import { WorkQueueService } from "@tokenring-ai/queue";
 
 const agent = new Agent(app, { config: agentConfig, headless: false });
-const queueService = new WorkQueueService({ maxSize: 10 });
+const queueService = new WorkQueueService({ agentDefaults: { maxSize: 10 } });
 
 // Initialize queue on agent
 await queueService.attach(agent);
@@ -225,16 +271,16 @@ console.log(result);
 
 ### State Preservation and Restoration
 
-```typescript
-// Queue processing preserves original state
-/queue start  // Saves current agent state
+```bash
+# Queue processing preserves original state
+/queue start  # Saves current agent state
 
-// Process multiple items
+# Process multiple items
 /queue next
-/queue run    // Each item can modify state temporarily
+/queue run    # Each item can modify state temporarily
 
-// Restore original state
-/queue done   // Returns to saved state
+# Restore original state
+/queue done   # Returns to saved state
 ```
 
 ### Removing and Inspecting Queue Items
@@ -249,9 +295,9 @@ console.log(result);
 /queue list
 # Output:
 // Queue contents:
-// [0] Task 1: Generate report
-// [1] Task 2: Update metrics
-// [2] Task 3: Send notifications
+// 1. Task 1: Generate report
+// 2. Task 2: Update metrics
+// 3. Task 3: Send notifications
 
 # Check details of a specific item
 /queue details 1
@@ -275,14 +321,36 @@ console.log(result);
 
 ```typescript
 // Basic queue with unlimited size
-const queueService = new WorkQueueService();
+const queueService = new WorkQueueService({ agentDefaults: {} });
 
 // Queue with size limit
-const boundedQueue = new WorkQueueService({ maxSize: 50 });
+const boundedQueue = new WorkQueueService({ agentDefaults: { maxSize: 50 } });
 
 // Agent automatically gets WorkQueueState attached
 await queueService.attach(agent);
 ```
+
+### Agent Configuration
+
+```typescript
+// Configure queue size at the agent level
+const agentConfig = {
+  queue: {
+    maxSize: 100
+  }
+};
+
+const agent = new Agent(app, { config: agentConfig, headless: false });
+```
+
+## Dependencies
+
+- `@tokenring-ai/agent`: Agent framework and state management
+- `@tokenring-ai/app`: Application framework and plugin system
+- `@tokenring-ai/chat`: Chat service for command execution
+- `@tokenring-ai/checkpoint`: Checkpoint management for state saving
+- `@tokenring-ai/utility`: Shared utilities including deepMerge
+- `zod`: Schema validation and configuration
 
 ## Error Handling
 
@@ -351,6 +419,7 @@ await agent.handleInput({ message: "/queue list" });
 
 ```bash
 bun run test
+bun run test:watch
 bun run test:coverage
 ```
 
@@ -362,6 +431,7 @@ pkg/queue/
 ├── index.ts                          # Package exports and plugin integration
 ├── plugin.ts                         # TokenRing plugin implementation
 ├── package.json                      # Package configuration
+├── schema.ts                         # Configuration schemas
 ├── commands/                         # Chat commands
 │   └── queue.ts                      # /queue command implementation
 ├── tools/                            # Built-in tools
@@ -371,7 +441,7 @@ pkg/queue/
 ├── chatCommands.ts                   # Command exports
 ├── tools.ts                          # Tool exports
 ├── test/                             # Test suite
-│   └── WorkQueueService.test.js      # Unit tests
+│   └── WorkQueueService.test.ts      # Unit tests
 └── vitest.config.ts                  # Test configuration
 ```
 
