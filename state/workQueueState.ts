@@ -22,7 +22,7 @@ const serializationSchema = z.object({
 });
 
 export class WorkQueueState implements AgentStateSlice<typeof serializationSchema> {
-  name = "WorkQueueState";
+  readonly name = "WorkQueueState";
   serializationSchema = serializationSchema;
   /** The queue of work items. */
   queue: QueueItem[] = [];

@@ -10,7 +10,7 @@ import {WorkQueueState} from "./state/workQueueState.js";
  * A service for managing a queue of work items.
  */
 export default class WorkQueueService implements TokenRingService {
-  name = "WorkQueueService";
+  readonly name = "WorkQueueService";
   description = "Provides Work Queue functionality";
 
 
@@ -51,12 +51,6 @@ export default class WorkQueueService implements TokenRingService {
   setInitialCheckpoint(message: AgentCheckpointData, agent: Agent): void {
     agent.mutateState(WorkQueueState, (state: WorkQueueState) => {
       state.initialCheckpoint = message;
-    });
-  }
-
-  clearInitialCheckpoint(agent: Agent): void {
-    agent.mutateState(WorkQueueState, (state: WorkQueueState) => {
-      state.initialCheckpoint = null;
     });
   }
 
