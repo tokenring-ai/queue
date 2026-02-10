@@ -1,10 +1,10 @@
 import {Agent} from "@tokenring-ai/agent";
+import createTestingAgent from "@tokenring-ai/agent/test/createTestingAgent";
 import TokenRingApp from "@tokenring-ai/app";
+import createTestingApp from "@tokenring-ai/app/test/createTestingApp";
 import {afterEach, beforeEach, describe, expect, it, vi} from "vitest";
 import {WorkQueueState} from "../state/workQueueState";
 import WorkQueueService from "../WorkQueueService.ts";
-import createTestingApp from "@tokenring-ai/app/test/createTestingApp";
-import createTestingAgent from "@tokenring-ai/agent/test/createTestingAgent";
 
 // Mock dependencies
 vi.mock("@tokenring-ai/chat/resources/ChatCommandRegistry", () => ({
@@ -26,7 +26,9 @@ describe("WorkQueueService", () => {
 
     app = createTestingApp();
   agent = createTestingAgent(app);
-  workQueueService = new WorkQueueService();
+    workQueueService = new WorkQueueService({
+      agentDefaults: {},
+    });
   app.addServices(workQueueService);
   workQueueService.attach(agent)
  });
@@ -48,7 +50,7 @@ describe("WorkQueueService", () => {
  it("should initialize with maxSize parameter", () => {
   // Execute
   const maxSize = 5;
-  workQueueService = new WorkQueueService({maxSize});
+   workQueueService = new WorkQueueService({agentDefaults: {maxSize}});
   workQueueService.attach(agent)
 
   const state = agent.getState(WorkQueueState);
@@ -56,7 +58,7 @@ describe("WorkQueueService", () => {
 
    // Verify
   expect(state.queue).toEqual([]);
-  expect(workQueueService.maxSize).toBe(maxSize);
+   expect(state.maxSize).toBe(maxSize);
  });
 
  // Test 3: Enqueue with unlimited queue
@@ -79,8 +81,9 @@ describe("WorkQueueService", () => {
 
  // Test 4: Enqueue with size limit
  it("should respect maxSize when adding items", () => {
-  // Setup
-  workQueueService = new WorkQueueService({maxSize: 2});
+   agent.mutateState(WorkQueueState, state => {
+     state.maxSize = 2;
+   });
   const item1 = {name: "item1", checkpoint: {} as any, input: ""};
   const item2 = {name: "item2", checkpoint: {} as any, input: ""};
   const item3 = {name: "item3", checkpoint: {} as any, input: ""};
