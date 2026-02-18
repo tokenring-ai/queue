@@ -47,7 +47,7 @@ The package provides the `/queue` command for managing queue operations.
 
 ## Plugin Configuration
 
-The plugin configuration supports optional queue size limits through the `agentDefaults` option.
+The plugin configuration supports optional queue size limits through the `queue` option.
 
 ```typescript
 import queuePlugin from "@tokenring-ai/queue/plugin";
@@ -122,7 +122,7 @@ Adds a task to the queue for later execution by the system.
 }
 ```
 
-## Core Components and APIs
+## Services
 
 ### WorkQueueService
 
@@ -151,7 +151,6 @@ new WorkQueueService(options: ParsedWorkQueueConfig)
 |--------|-------------|------------|---------|
 | `setInitialCheckpoint(checkpoint, agent)` | Set starting state checkpoint | `checkpoint: AgentCheckpointData`, `agent: Agent` | `void` |
 | `getInitialCheckpoint(agent)` | Get initial checkpoint | `agent: Agent` | `AgentCheckpointData \| null` |
-| `clearInitialCheckpoint(agent)` | Clear initial checkpoint | `agent: Agent` | `void` |
 
 #### Queue Operation Methods
 
@@ -259,7 +258,7 @@ const nextItem = queueService.dequeue(agent);
 
 ```typescript
 // Using the tool programmatically
-const tool = tools.queue_addTaskToQueue;
+const tool = tools.addTaskToQueue;
 const result = await tool.execute({
   description: "Data analysis task",
   content: "Analyze the sales data from last quarter and identify trends, anomalies, and recommendations for improvement. Use all available data analysis tools."
@@ -294,25 +293,25 @@ console.log(result);
 # View queue contents
 /queue list
 # Output:
-// Queue contents:
-// 1. Task 1: Generate report
-// 2. Task 2: Update metrics
-// 3. Task 3: Send notifications
+# Queue contents:
+# 1. Task 1: Generate report
+# 2. Task 2: Update metrics
+# 3. Task 3: Send notifications
 
 # Check details of a specific item
 /queue details 1
 # Output:
-// Queue item details:
-// {
-//   "checkpoint": {...},
-//   "name": "Task 2: Update metrics",
-//   "input": "Task 2: Update metrics"
-// }
+# Queue item details:
+# {
+#   "checkpoint": {...},
+#   "name": "Task 2: Update metrics",
+#   "input": "Task 2: Update metrics"
+# }
 
 # Remove an item from the queue
 /queue remove 1
 # Output:
-// Removed "Task 2: Update metrics" from queue. Remaining: 2
+# Removed "Task 2: Update metrics" from queue. Remaining: 2
 ```
 
 ## Configuration
@@ -345,12 +344,19 @@ const agent = new Agent(app, { config: agentConfig, headless: false });
 
 ## Dependencies
 
+### Production Dependencies
+
 - `@tokenring-ai/agent`: Agent framework and state management
 - `@tokenring-ai/app`: Application framework and plugin system
 - `@tokenring-ai/chat`: Chat service for command execution
 - `@tokenring-ai/checkpoint`: Checkpoint management for state saving
 - `@tokenring-ai/utility`: Shared utilities including deepMerge
 - `zod`: Schema validation and configuration
+
+### Development Dependencies
+
+- `typescript`: TypeScript compiler
+- `vitest`: Unit testing framework
 
 ## Error Handling
 
