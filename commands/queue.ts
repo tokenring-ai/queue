@@ -150,7 +150,7 @@ async function execute(remainder: string, agent: Agent): Promise<string> {
       const chatConfig = chatService.getChatConfig(agent);
 
       try {
-        await runChat(input, chatConfig, agent);
+        await runChat({input, chatConfig, agent});
       } catch (error: any) {
         throw new CommandFailedError(
           `Error running queued prompt: ${error.message || error}`,
