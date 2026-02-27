@@ -258,6 +258,7 @@ End queue processing and restore previous chat state
 - **Current item**: Shows which item is loaded (use /queue next to load next)`;
 
 export default {
+  name: "queue",
   description,
   execute,
   help,

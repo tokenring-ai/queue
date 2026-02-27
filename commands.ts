@@ -1,5 +1,5 @@
 import queue from "./commands/queue.ts";
 
-export default {
+export default [
   queue,
-};
+];
