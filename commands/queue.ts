@@ -3,7 +3,7 @@ import {TokenRingAgentCommand} from "@tokenring-ai/agent/types";
 import {CommandFailedError} from "@tokenring-ai/agent/AgentError";
 import {ChatService} from "@tokenring-ai/chat";
 import runChat from "@tokenring-ai/chat/runChat";
-import {execute as checkpoint} from "@tokenring-ai/checkpoint/commands/checkpoint";
+import checkpointCreate from "@tokenring-ai/checkpoint/commands/checkpoint/create";
 import numberedList from "@tokenring-ai/utility/string/numberedList";
 import WorkQueueService from "../WorkQueueService.ts";
 
@@ -82,7 +82,7 @@ async function execute(remainder: string, agent: Agent): Promise<string> {
       workQueueService.setInitialCheckpoint(agent.generateCheckpoint(), agent);
       workQueueService.startWork(agent);
 
-      await checkpoint("create Start of queue operation", agent);
+      await checkpointCreate.execute("Start of queue operation", agent);
       return "Queue started, use /queue next to start working on the first item in the queue, or /queue done to end the queue.";
     }
     case "next":
@@ -93,10 +93,7 @@ async function execute(remainder: string, agent: Agent): Promise<string> {
 
       const currentItem = workQueueService.getCurrentItem(agent);
 
-      await checkpoint(
-        `create End of queue operation: ${currentItem?.name ?? "unknown"}`,
-        agent,
-      );
+      await checkpointCreate.execute(`End of queue operation: ${currentItem?.name ?? "unknown"}`, agent);
 
       if (action === "done" || workQueueService.isEmpty(agent)) {
         const initialCheckpoint = workQueueService.getInitialCheckpoint(agent);
