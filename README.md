@@ -252,7 +252,7 @@ const state = new WorkQueueState({
 
 | Method | Description | Parameters | Returns |
 |--------|-------------|------------|---------|
-| `reset(what)` | Reset specific state components | `what: ResetWhat[]` | `void` |
+| `reset()` | Reset all state components | None | `void` |
 | `serialize()` | Convert state to serializable format | None | `object` |
 | `deserialize(data)` | Restore state from data | `data: any` | `void` |
 | `show()` | Get human-readable state summary | None | `string[]` |
@@ -464,7 +464,6 @@ const agent = new Agent(app, { config: agentConfig, headless: false });
 - `@tokenring-ai/chat`: Chat service for command execution
 - `@tokenring-ai/checkpoint`: Checkpoint management for state saving
 - `@tokenring-ai/utility`: Shared utilities including deepMerge
-- `@tokenring-ai/chat`: Chat service integration
 - `zod`: Schema validation and configuration
 
 ### Development Dependencies
