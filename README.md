@@ -4,7 +4,7 @@
 
 A comprehensive queue management system for TokenRing AI, providing work item queuing with state preservation, interactive management, and seamless integration with the agent framework. This package enables sequential processing of work items while preserving agent state through checkpointing, making it ideal for batch processing, task management, and workflow orchestration.
 
-## Features
+## Key Features
 
 - **State Preservation**: Maintains agent state through checkpointing during queue processing
 - **Interactive Management**: Comprehensive chat commands for queue operations
@@ -119,6 +119,7 @@ import { WorkQueueAgentConfigSchema } from "@tokenring-ai/queue/schema";
 Adds a task to the queue for later execution by the system.
 
 **Input Schema:**
+
 ```typescript
 import { z } from "zod";
 
@@ -137,6 +138,7 @@ const inputSchema = z.object({
 ```
 
 **Output:**
+
 ```typescript
 {
   type: "json",
@@ -148,6 +150,7 @@ const inputSchema = z.object({
 ```
 
 **Usage Example:**
+
 ```typescript
 import Agent from "@tokenring-ai/agent";
 import tools from "@tokenring-ai/queue/tools";
@@ -169,6 +172,7 @@ console.log(result);
 The central service for queue operations with comprehensive state management.
 
 **Constructor:**
+
 ```typescript
 import WorkQueueService from "@tokenring-ai/queue/WorkQueueService";
 import { WorkQueueServiceConfigSchema } from "@tokenring-ai/queue/schema";
@@ -240,6 +244,7 @@ State management for queue operations. Implements `AgentStateSlice` for integrat
 | `serializationSchema` | `z.ZodSchema` | Zod schema for serialization |
 
 **Constructor:**
+
 ```typescript
 import { WorkQueueState } from "@tokenring-ai/queue/state/workQueueState";
 
@@ -389,6 +394,7 @@ console.log(result);
 
 ```typescript
 import WorkQueueService from "@tokenring-ai/queue/WorkQueueService";
+import { WorkQueueState } from "@tokenring-ai/queue/state/workQueueState";
 
 // Create service with size limit
 const boundedQueue = new WorkQueueService({
@@ -410,7 +416,10 @@ for (let i = 0; i < 7; i++) {
   // Tasks 0-4 will be added (true), tasks 5-6 will fail (false)
 }
 
-console.log(`Queue size: ${boundedQueue.size(agent)}`);  // 5
+// Check queue size through state
+const state = agent.getState(WorkQueueState);
+console.log(`Queue size: ${state.queue.length}`);  // 5
+console.log(`Max size: ${state.maxSize}`);  // 5
 ```
 
 ## Configuration
@@ -462,8 +471,8 @@ const agent = new Agent(app, { config: agentConfig, headless: false });
 - `@tokenring-ai/agent`: Agent framework and state management
 - `@tokenring-ai/app`: Application framework and plugin system
 - `@tokenring-ai/chat`: Chat service for command execution
-- `@tokenring-ai/checkpoint`: Checkpoint management for state saving
 - `@tokenring-ai/utility`: Shared utilities including deepMerge
+- `@tokenring-ai/ai-client`: AI client integration
 - `zod`: Schema validation and configuration
 
 ### Development Dependencies
@@ -600,7 +609,16 @@ pkg/queue/
 ├── package.json                      # Package configuration
 ├── schema.ts                         # Configuration schemas
 ├── commands/                         # Chat commands
-│   └── queue.ts                      # /queue command implementation
+│   └── queue/                        # Queue command implementations
+│       ├── add.ts                    # /queue add command
+│       ├── remove.ts                 # /queue remove command
+│       ├── details.ts                # /queue details command
+│       ├── clear.ts                  # /queue clear command
+│       ├── list.ts                   # /queue list command
+│       ├── start.ts                  # /queue start command
+│       ├── next-done.ts              # /queue next and /queue done commands
+│       ├── skip.ts                   # /queue skip command
+│       └── run.ts                    # /queue run command
 ├── tools/                            # Built-in tools
 │   └── addTaskToQueue.ts             # Task addition tool
 ├── state/                            # State management
@@ -617,6 +635,7 @@ pkg/queue/
 ```typescript
 import { describe, it, expect, beforeEach } from "vitest";
 import WorkQueueService from "@tokenring-ai/queue/WorkQueueService";
+import { WorkQueueState } from "@tokenring-ai/queue/state/workQueueState";
 import createTestingAgent from "@tokenring-ai/agent/test/createTestingAgent";
 import createTestingApp from "@tokenring-ai/app/test/createTestingApp";
 
