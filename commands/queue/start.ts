@@ -4,7 +4,7 @@ import WorkQueueService from "../../WorkQueueService.ts";
 
 export default {
   name: "queue start",
-  description: "/queue start - Begin queue processing",
+  description: "Begin queue processing",
   help: `# /queue start\n\nBegin queue processing (preserves current chat state).\n\n## Example\n\n/queue start`,
   execute: async (_remainder: string, agent: Agent): Promise<string> => {
     const workQueueService = agent.requireServiceByType(WorkQueueService);

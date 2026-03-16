@@ -4,7 +4,7 @@ import WorkQueueService from "../../WorkQueueService.ts";
 
 export default {
   name: "queue skip",
-  description: "/queue skip - Skip current item and re-add to end of queue",
+  description: "Skip current item and re-add to end of queue",
   help: `# /queue skip\n\nSkip current item and re-add to end of queue.\n\n## Example\n\n/queue skip`,
   execute: async (_remainder: string, agent: Agent): Promise<string> => {
     const workQueueService = agent.requireServiceByType(WorkQueueService);

@@ -44,8 +44,7 @@ async function execute(
   };
 }
 
-const description =
-  "Adds a task to the queue for later execution by the system." as const;
+const description = "Adds a task to the queue for later execution by the system." as const;
 
 const inputSchema = z.object({
   description: z

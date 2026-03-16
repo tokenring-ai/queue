@@ -1,6 +1,6 @@
 import Agent from "@tokenring-ai/agent/Agent";
-import {TokenRingAgentCommand} from "@tokenring-ai/agent/types";
 import {CommandFailedError} from "@tokenring-ai/agent/AgentError";
+import {TokenRingAgentCommand} from "@tokenring-ai/agent/types";
 import WorkQueueService from "../../WorkQueueService.ts";
 
 async function nextOrDone(action: "next" | "done", _remainder: string, agent: Agent): Promise<string> {
@@ -24,14 +24,14 @@ async function nextOrDone(action: "next" | "done", _remainder: string, agent: Ag
 
 export const queueNext = {
   name: "queue next",
-  description: "/queue next - Load the next queued item",
+  description: "Load the next queued item",
   help: `# /queue next\n\nLoad the next queued item (does not execute it).\n\n## Example\n\n/queue next`,
   execute: (remainder: string, agent: Agent) => nextOrDone("next", remainder, agent),
 } satisfies TokenRingAgentCommand;
 
 export const queueDone = {
   name: "queue done",
-  description: "/queue done - End queue processing and restore chat state",
+  description: "End queue processing and restore chat state",
   help: `# /queue done\n\nEnd queue processing and restore previous chat state.\n\n## Example\n\n/queue done`,
   execute: (remainder: string, agent: Agent) => nextOrDone("done", remainder, agent),
 } satisfies TokenRingAgentCommand;

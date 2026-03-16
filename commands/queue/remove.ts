@@ -1,11 +1,11 @@
 import Agent from "@tokenring-ai/agent/Agent";
-import {TokenRingAgentCommand} from "@tokenring-ai/agent/types";
 import {CommandFailedError} from "@tokenring-ai/agent/AgentError";
+import {TokenRingAgentCommand} from "@tokenring-ai/agent/types";
 import WorkQueueService from "../../WorkQueueService.ts";
 
 export default {
   name: "queue remove",
-  description: "/queue remove <index> - Remove a prompt from the queue",
+  description: "Remove a prompt from the queue",
   help: `# /queue remove\n\nRemove the prompt at the given zero-based index.\n\n## Example\n\n/queue remove 2`,
   execute: async (remainder: string, agent: Agent): Promise<string> => {
     const workQueueService = agent.requireServiceByType(WorkQueueService);

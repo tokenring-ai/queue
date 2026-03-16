@@ -1,11 +1,11 @@
 import Agent from "@tokenring-ai/agent/Agent";
-import {TokenRingAgentCommand} from "@tokenring-ai/agent/types";
 import {CommandFailedError} from "@tokenring-ai/agent/AgentError";
+import {TokenRingAgentCommand} from "@tokenring-ai/agent/types";
 import WorkQueueService from "../../WorkQueueService.ts";
 
 export default {
   name: "queue details",
-  description: "/queue details <index> - Show details of a queue item",
+  description: "Show details of a queue item",
   help: `# /queue details\n\nShow detailed information about a specific queue item.\n\n## Example\n\n/queue details 0`,
   execute: async (remainder: string, agent: Agent): Promise<string> => {
     const workQueueService = agent.requireServiceByType(WorkQueueService);

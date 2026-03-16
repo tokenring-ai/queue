@@ -5,7 +5,7 @@ import WorkQueueService from "../../WorkQueueService.ts";
 
 export default {
   name: "queue list",
-  description: "/queue list - Display all queued prompts",
+  description: "Display all queued prompts",
   help: `# /queue list\n\nDisplay all queued prompts with their indices.\n\n## Example\n\n/queue list`,
   execute: async (_remainder: string, agent: Agent): Promise<string> => {
     const workQueueService = agent.requireServiceByType(WorkQueueService);
