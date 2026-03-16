@@ -1,18 +1,33 @@
-import Agent from "@tokenring-ai/agent/Agent";
+import type {AgentCommandInputSchema, AgentCommandInputType, TokenRingAgentCommand} from "@tokenring-ai/agent/types";
 import {CommandFailedError} from "@tokenring-ai/agent/AgentError";
-import {TokenRingAgentCommand} from "@tokenring-ai/agent/types";
 import WorkQueueService from "../../WorkQueueService.ts";
+
+const inputSchema = {
+  args: {
+    "--index": {
+      type: "number",
+      description: "Index of queue item",
+      required: true,
+      minimum: 0
+    },
+  }
+} as const satisfies AgentCommandInputSchema;
 
 export default {
   name: "queue details",
   description: "Show details of a queue item",
-  help: `# /queue details\n\nShow detailed information about a specific queue item.\n\n## Example\n\n/queue details 0`,
-  execute: async (remainder: string, agent: Agent): Promise<string> => {
+  help: `Show detailed information about a specific queue item.
+
+## Example
+
+/queue details 0`,
+  inputSchema,
+  execute: async ({args, agent}: AgentCommandInputType<typeof inputSchema>): Promise<string> => {
+    const idx = args["--index"];
     const workQueueService = agent.requireServiceByType(WorkQueueService);
-    const idx = Number.parseInt(remainder.trim(), 10);
-    if (Number.isNaN(idx) || idx < 0 || idx >= workQueueService.size(agent)) {
-      throw new CommandFailedError("Usage: /queue details <index>  (index starts from 0)");
+    if (idx >= workQueueService.size(agent)) {
+      throw new CommandFailedError("Index is larger than work queue size");
     }
     return ["Queue item details:", ...JSON.stringify(workQueueService.get(idx, agent), null, 2).split("\n")].join("\n");
   },
-} satisfies TokenRingAgentCommand;
+} satisfies TokenRingAgentCommand<typeof inputSchema>;

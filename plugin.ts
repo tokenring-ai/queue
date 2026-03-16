@@ -22,7 +22,7 @@ export default {
       chatService.addTools(tools)
     );
     app.waitForService(AgentCommandService, agentCommandService =>
-      agentCommandService.addAgentCommands(agentCommands)
+      agentCommandService.addAgentCommands([...agentCommands])
     );
     app.addServices(new WorkQueueService(config.queue));
   },

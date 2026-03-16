@@ -1,9 +1,10 @@
-import Agent from "@tokenring-ai/agent/Agent";
 import {CommandFailedError} from "@tokenring-ai/agent/AgentError";
-import {TokenRingAgentCommand} from "@tokenring-ai/agent/types";
+import type {AgentCommandInputSchema, AgentCommandInputType, TokenRingAgentCommand} from "@tokenring-ai/agent/types";
 import WorkQueueService from "../../WorkQueueService.ts";
 
-async function nextOrDone(action: "next" | "done", _remainder: string, agent: Agent): Promise<string> {
+const inputSchema = {} as const satisfies AgentCommandInputSchema;
+
+async function nextOrDone(action: "next" | "done", agent: any): Promise<string> {
   const workQueueService = agent.requireServiceByType(WorkQueueService);
   if (!workQueueService.started(agent)) return "Queue not started. Use /queue start to start the queue.";
 
@@ -25,13 +26,23 @@ async function nextOrDone(action: "next" | "done", _remainder: string, agent: Ag
 export const queueNext = {
   name: "queue next",
   description: "Load the next queued item",
-  help: `# /queue next\n\nLoad the next queued item (does not execute it).\n\n## Example\n\n/queue next`,
-  execute: (remainder: string, agent: Agent) => nextOrDone("next", remainder, agent),
-} satisfies TokenRingAgentCommand;
+  help: `Load the next queued item (does not execute it).
+
+## Example
+
+/queue next`,
+  inputSchema,
+  execute: ({agent}: AgentCommandInputType<typeof inputSchema>) => nextOrDone("next", agent),
+} satisfies TokenRingAgentCommand<typeof inputSchema>;
 
 export const queueDone = {
   name: "queue done",
   description: "End queue processing and restore chat state",
-  help: `# /queue done\n\nEnd queue processing and restore previous chat state.\n\n## Example\n\n/queue done`,
-  execute: (remainder: string, agent: Agent) => nextOrDone("done", remainder, agent),
-} satisfies TokenRingAgentCommand;
+  help: `End queue processing and restore previous chat state.
+
+## Example
+
+/queue done`,
+  inputSchema,
+  execute: ({agent}: AgentCommandInputType<typeof inputSchema>) => nextOrDone("done", agent),
+} satisfies TokenRingAgentCommand<typeof inputSchema>;

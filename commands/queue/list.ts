@@ -1,15 +1,21 @@
-import Agent from "@tokenring-ai/agent/Agent";
-import {TokenRingAgentCommand} from "@tokenring-ai/agent/types";
+import type {AgentCommandInputSchema, AgentCommandInputType, TokenRingAgentCommand} from "@tokenring-ai/agent/types";
 import numberedList from "@tokenring-ai/utility/string/numberedList";
 import WorkQueueService from "../../WorkQueueService.ts";
+
+const inputSchema = {} as const satisfies AgentCommandInputSchema;
 
 export default {
   name: "queue list",
   description: "Display all queued prompts",
-  help: `# /queue list\n\nDisplay all queued prompts with their indices.\n\n## Example\n\n/queue list`,
-  execute: async (_remainder: string, agent: Agent): Promise<string> => {
+  help: `Display all queued prompts with their indices.
+
+## Example
+
+/queue list`,
+  inputSchema,
+  execute: async ({agent}: AgentCommandInputType<typeof inputSchema>): Promise<string> => {
     const workQueueService = agent.requireServiceByType(WorkQueueService);
     if (workQueueService.size(agent) === 0) return "Queue is empty.";
     return ["Queue contents:", numberedList(workQueueService.getAll(agent).map(({name}) => name))].join("\n");
   },
-} satisfies TokenRingAgentCommand;
+} satisfies TokenRingAgentCommand<typeof inputSchema>;

@@ -1,15 +1,21 @@
-import Agent from "@tokenring-ai/agent/Agent";
 import {CommandFailedError} from "@tokenring-ai/agent/AgentError";
-import {TokenRingAgentCommand} from "@tokenring-ai/agent/types";
+import type {AgentCommandInputSchema, AgentCommandInputType, TokenRingAgentCommand} from "@tokenring-ai/agent/types";
 import {ChatService} from "@tokenring-ai/chat";
 import runChat from "@tokenring-ai/chat/runChat";
 import WorkQueueService from "../../WorkQueueService.ts";
 
+const inputSchema = {} as const satisfies AgentCommandInputSchema;
+
 export default {
   name: "queue run",
   description: "Execute the currently loaded queued prompt",
-  help: `# /queue run\n\nExecute the currently loaded queued prompt.\n\n## Example\n\n/queue run`,
-  execute: async (_remainder: string, agent: Agent): Promise<string> => {
+  help: `Execute the currently loaded queued prompt.
+
+## Example
+
+/queue run`,
+  inputSchema,
+  execute: async ({agent}: AgentCommandInputType<typeof inputSchema>): Promise<string> => {
     const workQueueService = agent.requireServiceByType(WorkQueueService);
     if (!workQueueService.started(agent)) return "Queue not started. Use /queue start to start the queue.";
     const currentItem = workQueueService.getCurrentItem(agent);
@@ -25,4 +31,4 @@ export default {
     }
     return "Queue item executed.";
   },
-} satisfies TokenRingAgentCommand;
+} satisfies TokenRingAgentCommand<typeof inputSchema>;
