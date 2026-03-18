@@ -1,16 +1,9 @@
 import type {AgentCommandInputSchema, AgentCommandInputType, TokenRingAgentCommand} from "@tokenring-ai/agent/types";
-import {CommandFailedError} from "@tokenring-ai/agent/AgentError";
 import WorkQueueService from "../../WorkQueueService.ts";
 
 const inputSchema = {
   args: {},
-  positionals: [{
-    name: "prompt",
-    description: "Prompt to add to queue",
-    required: true,
-    greedy: true,
-  }],
-  allowAttachments: false,
+  remainder: {name: "prompt", description: "Prompt to add to queue", required: true}
 } as const satisfies AgentCommandInputSchema;
 
 export default {
@@ -22,9 +15,9 @@ export default {
 
 /queue add Write a Python function to calculate Fibonacci numbers`,
   inputSchema,
-  execute: async ({positionals: { prompt }, agent}: AgentCommandInputType<typeof inputSchema>): Promise<string> => {
+  execute: async ({remainder, agent}: AgentCommandInputType<typeof inputSchema>): Promise<string> => {
     const workQueueService = agent.requireServiceByType(WorkQueueService);
-    workQueueService.enqueue({ checkpoint: agent.generateCheckpoint(), name: prompt, input: prompt }, agent);
+    workQueueService.enqueue({checkpoint: agent.generateCheckpoint(), name: remainder, input: remainder}, agent);
     return `Added to queue. Queue length: ${workQueueService.size(agent)}`;
   },
 } satisfies TokenRingAgentCommand<typeof inputSchema>;
