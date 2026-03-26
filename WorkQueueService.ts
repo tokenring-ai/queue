@@ -3,8 +3,8 @@ import type {AgentCheckpointData} from "@tokenring-ai/agent/types";
 import {TokenRingService} from "@tokenring-ai/app/types";
 import deepMerge from "@tokenring-ai/utility/object/deepMerge";
 import {type ParsedWorkQueueConfig, WorkQueueAgentConfigSchema} from "./schema.ts";
-import type {QueueItem} from "./state/workQueueState.js";
-import {WorkQueueState} from "./state/workQueueState.js";
+import type {QueueItem} from "./state/workQueueState.ts";
+import {WorkQueueState} from "./state/workQueueState.ts";
 
 /**
  * A service for managing a queue of work items.

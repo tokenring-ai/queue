@@ -18,14 +18,6 @@ async function execute(
   // Prefix all chat output with the tool name
   agent.infoMessage(`[${name}] Added task "${description}" to queue`);
 
-  if (!description) {
-    throw new Error(`[${name}] Task description is required`);
-  }
-
-  if (!content) {
-    throw new Error(`[${name}] Task content is required`);
-  }
-
   workQueueService.enqueue(
     {
       checkpoint: agent.generateCheckpoint(),
@@ -57,6 +49,12 @@ const inputSchema = z.object({
       "This string will be used to prompt an AI agent as the next message in this conversation, so should be as detailed as possible, " +
       "and should directly order the AI agent to execute the task, using the tools that are available to it.",
     ),
+}).refine(data => data.description && data.description.trim(), {
+  message: "Task description is required",
+  path: ["description"],
+}).refine(data => data.content && data.content.trim(), {
+  message: "Task content is required",
+  path: ["content"],
 });
 
 export default {

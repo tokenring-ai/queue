@@ -3,8 +3,8 @@ import createTestingAgent from "@tokenring-ai/agent/test/createTestingAgent";
 import TokenRingApp from "@tokenring-ai/app";
 import createTestingApp from "@tokenring-ai/app/test/createTestingApp";
 import {afterEach, beforeEach, describe, expect, it, vi} from "vitest";
-import {WorkQueueState} from "../state/workQueueState.js";
-import WorkQueueService from "../WorkQueueService.js";
+import {WorkQueueState} from "../state/workQueueState.ts";
+import WorkQueueService from "../WorkQueueService.ts";
 
 // Mock dependencies
 vi.mock("@tokenring-ai/chat/resources/ChatCommandRegistry", () => ({

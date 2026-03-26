@@ -1,10 +1,11 @@
+import {Agent} from "@tokenring-ai/agent";
 import {CommandFailedError} from "@tokenring-ai/agent/AgentError";
 import type {AgentCommandInputSchema, AgentCommandInputType, TokenRingAgentCommand} from "@tokenring-ai/agent/types";
 import WorkQueueService from "../../WorkQueueService.ts";
 
 const inputSchema = {} as const satisfies AgentCommandInputSchema;
 
-async function nextOrDone(action: "next" | "done", agent: any): Promise<string> {
+async function nextOrDone(action: "next" | "done", agent: Agent): Promise<string> {
   const workQueueService = agent.requireServiceByType(WorkQueueService);
   if (!workQueueService.started(agent)) return "Queue not started. Use /queue start to start the queue.";
 
@@ -32,7 +33,7 @@ export const queueNext = {
 
 /queue next`,
   inputSchema,
-  execute: ({agent}: AgentCommandInputType<typeof inputSchema>) => nextOrDone("next", agent),
+  execute: async ({agent}: AgentCommandInputType<typeof inputSchema>) => await nextOrDone("next", agent),
 } satisfies TokenRingAgentCommand<typeof inputSchema>;
 
 export const queueDone = {
@@ -44,5 +45,5 @@ export const queueDone = {
 
 /queue done`,
   inputSchema,
-  execute: ({agent}: AgentCommandInputType<typeof inputSchema>) => nextOrDone("done", agent),
+  execute: async ({agent}: AgentCommandInputType<typeof inputSchema>) => await nextOrDone("done", agent),
 } satisfies TokenRingAgentCommand<typeof inputSchema>;

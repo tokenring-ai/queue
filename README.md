@@ -472,7 +472,6 @@ const agent = new Agent(app, { config: agentConfig, headless: false });
 - `@tokenring-ai/app`: Application framework and plugin system
 - `@tokenring-ai/chat`: Chat service for command execution
 - `@tokenring-ai/utility`: Shared utilities including deepMerge
-- `@tokenring-ai/ai-client`: AI client integration
 - `zod`: Schema validation and configuration
 
 ### Development Dependencies

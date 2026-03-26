@@ -7,7 +7,7 @@ import agentCommands from "./commands.ts";
 import packageJSON from "./package.json" with {type: "json"};
 import {WorkQueueServiceConfigSchema} from "./schema.ts";
 import tools from "./tools.ts";
-import WorkQueueService from "./WorkQueueService.js";
+import WorkQueueService from "./WorkQueueService.ts";
 
 const packageConfigSchema = z.object({
   queue: WorkQueueServiceConfigSchema.prefault({})
