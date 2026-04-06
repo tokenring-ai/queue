@@ -27,23 +27,23 @@ The package provides the `/queue` command for managing queue operations.
 
 ### Queue Management Commands
 
-| Command | Description |
-|---------|-------------|
-| `/queue add <prompt>` | Add a new prompt to the end of the queue |
-| `/queue remove <index>` | Remove the prompt at the given zero-based index |
-| `/queue details <index>` | Show detailed information about a specific queue item |
-| `/queue clear` | Remove all prompts from the queue |
-| `/queue list` | Display all queued prompts with their indices |
+| Command | Description | Example |
+|---------|-------------|---------|
+| `/queue add <prompt>` | Add a new prompt to the end of the queue | `/queue add Write a Python function to calculate Fibonacci numbers` |
+| `/queue remove --index <number>` | Remove the prompt at the given zero-based index | `/queue remove 2` |
+| `/queue details --index <number>` | Show detailed information about a specific queue item | `/queue details 0` |
+| `/queue clear` | Remove all prompts from the queue | `/queue clear` |
+| `/queue list` | Display all queued prompts with their indices | `/queue list` |
 
 ### Queue Processing Commands
 
-| Command | Description |
-|---------|-------------|
-| `/queue start` | Begin queue processing (preserves current chat state) |
-| `/queue next` | Load the next queued item (does not execute it) |
-| `/queue run` | Execute the currently loaded queued prompt |
-| `/queue skip` | Skip current item and re-add to end of queue |
-| `/queue done` | End queue processing and restore previous chat state |
+| Command | Description | Example |
+|---------|-------------|---------|
+| `/queue start` | Begin queue processing (preserves current chat state) | `/queue start` |
+| `/queue next` | Load the next queued item (does not execute it) | `/queue next` |
+| `/queue run` | Execute the currently loaded queued prompt | `/queue run` |
+| `/queue skip` | Skip current item and re-add to end of queue | `/queue skip` |
+| `/queue done` | End queue processing and restore previous chat state | `/queue done` |
 
 ## Plugin Configuration
 
@@ -118,6 +118,12 @@ import { WorkQueueAgentConfigSchema } from "@tokenring-ai/queue/schema";
 
 Adds a task to the queue for later execution by the system.
 
+**Tool Name:** `queue_addTaskToQueue`
+
+**Display Name:** `Queue/addTaskToQueue`
+
+**Description:** Adds a task to the queue for later execution by the system.
+
 **Input Schema:**
 
 ```typescript
@@ -134,6 +140,12 @@ const inputSchema = z.object({
       "This string will be used to prompt an AI agent as the next message in this conversation, so should be as detailed as possible, " +
       "and should directly order the AI agent to execute the task, using the tools that are available to it."
     )
+}).refine(data => data.description && data.description.trim(), {
+  message: "Task description is required",
+  path: ["description"],
+}).refine(data => data.content && data.content.trim(), {
+  message: "Task content is required",
+  path: ["content"],
 });
 ```
 
@@ -149,6 +161,10 @@ const inputSchema = z.object({
 }
 ```
 
+**Side Effects:**
+
+- Outputs info message: `[queue_addTaskToQueue] Added task "<description>" to queue`
+
 **Usage Example:**
 
 ```typescript
@@ -163,6 +179,8 @@ const result = await tool.execute({
 
 console.log(result);
 // { type: "json", data: { status: "queued", message: "Task has been queued for later execution." } }
+
+// Agent will also output: [queue_addTaskToQueue] Added task "Data analysis task" to queue
 ```
 
 ## Services
@@ -468,16 +486,17 @@ const agent = new Agent(app, { config: agentConfig, headless: false });
 
 ### Production Dependencies
 
-- `@tokenring-ai/agent`: Agent framework and state management
-- `@tokenring-ai/app`: Application framework and plugin system
-- `@tokenring-ai/chat`: Chat service for command execution
-- `@tokenring-ai/utility`: Shared utilities including deepMerge
-- `zod`: Schema validation and configuration
+- `@tokenring-ai/agent`: Agent framework and state management (0.2.0)
+- `@tokenring-ai/ai-client`: AI client integration (0.2.0)
+- `@tokenring-ai/app`: Application framework and plugin system (0.2.0)
+- `@tokenring-ai/chat`: Chat service for command execution (0.2.0)
+- `@tokenring-ai/utility`: Shared utilities including deepMerge (0.2.0)
+- `zod`: Schema validation and configuration (^4.3.6)
 
 ### Development Dependencies
 
-- `typescript`: TypeScript compiler
-- `vitest`: Unit testing framework
+- `typescript`: TypeScript compiler (^6.0.2)
+- `vitest`: Unit testing framework (^4.1.1)
 
 ## Error Handling
 
@@ -632,50 +651,99 @@ pkg/queue/
 ### Testing Examples
 
 ```typescript
-import { describe, it, expect, beforeEach } from "vitest";
-import WorkQueueService from "@tokenring-ai/queue/WorkQueueService";
-import { WorkQueueState } from "@tokenring-ai/queue/state/workQueueState";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { Agent } from "@tokenring-ai/agent";
 import createTestingAgent from "@tokenring-ai/agent/test/createTestingAgent";
+import TokenRingApp from "@tokenring-ai/app";
 import createTestingApp from "@tokenring-ai/app/test/createTestingApp";
+import { WorkQueueState } from "../state/workQueueState.ts";
+import WorkQueueService from "../WorkQueueService.ts";
 
 describe("WorkQueueService", () => {
-  let agent;
-  let workQueueService;
+  let app: TokenRingApp;
+  let workQueueService: WorkQueueService;
+  let agent: Agent;
 
   beforeEach(() => {
-    const app = createTestingApp();
+    vi.resetAllMocks();
+    app = createTestingApp();
     agent = createTestingAgent(app);
-    workQueueService = new WorkQueueService({ agentDefaults: {} });
+    workQueueService = new WorkQueueService({
+      agentDefaults: {},
+    });
+    app.addServices(workQueueService);
     workQueueService.attach(agent);
   });
 
-  it("should enqueue and dequeue items", () => {
-    const item = {
-      name: "test-item",
-      checkpoint: {},
-      input: "test input"
-    };
-
-    workQueueService.enqueue(item, agent);
-    const dequeued = workQueueService.dequeue(agent);
-
-    expect(dequeued).toBe(item);
-    expect(workQueueService.isEmpty(agent)).toBe(true);
+  afterEach(() => {
+    vi.clearAllMocks();
   });
 
-  it("should respect maxSize", () => {
-    const boundedService = new WorkQueueService({ 
-      agentDefaults: { maxSize: 2 } 
+  it("should initialize with default parameters", () => {
+    const state = agent.getState(WorkQueueState);
+    expect(state.queue).toEqual([]);
+    expect(workQueueService.size(agent)).toBe(0);
+  });
+
+  it("should enqueue and dequeue items", () => {
+    const item1 = { name: "item1", checkpoint: {} as any, input: "" };
+    const item2 = { name: "item2", checkpoint: {} as any, input: "" };
+
+    const result1 = workQueueService.enqueue(item1, agent);
+    const result2 = workQueueService.enqueue(item2, agent);
+
+    expect(result1).toBe(true);
+    expect(result2).toBe(true);
+    expect(workQueueService.size(agent)).toBe(2);
+
+    const dequeued = workQueueService.dequeue(agent);
+    expect(dequeued).toBe(item1);
+    expect(workQueueService.size(agent)).toBe(1);
+  });
+
+  it("should respect maxSize when adding items", () => {
+    const testApp = createTestingApp();
+    const testAgent = createTestingAgent(testApp);
+    const testWorkQueueService = new WorkQueueService({
+      agentDefaults: { maxSize: 2 },
     });
-    boundedService.attach(agent);
+    testApp.addServices(testWorkQueueService);
+    testWorkQueueService.attach(testAgent);
 
-    const item1 = { name: "item1", checkpoint: {}, input: "" };
-    const item2 = { name: "item2", checkpoint: {}, input: "" };
-    const item3 = { name: "item3", checkpoint: {}, input: "" };
+    const item1 = { name: "item1", checkpoint: {} as any, input: "" };
+    const item2 = { name: "item2", checkpoint: {} as any, input: "" };
+    const item3 = { name: "item3", checkpoint: {} as any, input: "" };
 
-    expect(boundedService.enqueue(item1, agent)).toBe(true);
-    expect(boundedService.enqueue(item2, agent)).toBe(true);
-    expect(boundedService.enqueue(item3, agent)).toBe(false); // Queue full
+    expect(testWorkQueueService.enqueue(item1, testAgent)).toBe(true);
+    expect(testWorkQueueService.enqueue(item2, testAgent)).toBe(true);
+    expect(testWorkQueueService.enqueue(item3, testAgent)).toBe(false); // Queue full
+    expect(testWorkQueueService.size(testAgent)).toBe(2);
+  });
+
+  it("should correctly manipulate queue contents", () => {
+    const item1 = { name: "item1", checkpoint: {} as any, input: "" };
+    const item2 = { name: "item2", checkpoint: {} as any, input: "" };
+    const item3 = { name: "item3", checkpoint: {} as any, input: "" };
+
+    workQueueService.enqueue(item1, agent);
+    workQueueService.enqueue(item2, agent);
+    workQueueService.enqueue(item3, agent);
+
+    expect(workQueueService.size(agent)).toBe(3);
+    expect(workQueueService.isEmpty(agent)).toBe(false);
+    expect(workQueueService.get(1, agent)).toBe(item2);
+    expect(workQueueService.getAll(agent)).toEqual([item1, item2, item3]);
+
+    const removed = workQueueService.splice(1, 1, agent);
+    expect(removed).toEqual([item2]);
+    expect(workQueueService.size(agent)).toBe(2);
+
+    const dequeued = workQueueService.dequeue(agent);
+    expect(dequeued).toBe(item1);
+
+    workQueueService.clear(agent);
+    expect(workQueueService.size(agent)).toBe(0);
+    expect(workQueueService.isEmpty(agent)).toBe(true);
   });
 });
 ```
