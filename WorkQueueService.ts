@@ -1,8 +1,8 @@
-import {Agent} from "@tokenring-ai/agent";
+import type {Agent} from "@tokenring-ai/agent";
 import type {AgentCheckpointData} from "@tokenring-ai/agent/types";
-import {TokenRingService} from "@tokenring-ai/app/types";
+import type {TokenRingService} from "@tokenring-ai/app/types";
 import deepMerge from "@tokenring-ai/utility/object/deepMerge";
-import {type ParsedWorkQueueConfig, WorkQueueAgentConfigSchema} from "./schema.ts";
+import {type ParsedWorkQueueConfig, WorkQueueAgentConfigSchema,} from "./schema.ts";
 import type {QueueItem} from "./state/workQueueState.ts";
 import {WorkQueueState} from "./state/workQueueState.ts";
 
@@ -13,7 +13,6 @@ export default class WorkQueueService implements TokenRingService {
   readonly name = "WorkQueueService";
   description = "Provides Work Queue functionality";
 
-
   /**
    * Creates a new WorkQueueService instance.
    */
@@ -21,7 +20,10 @@ export default class WorkQueueService implements TokenRingService {
   }
 
   attach(agent: Agent): void {
-    let config = deepMerge(this.options.agentDefaults, agent.getAgentConfigSlice('queue', WorkQueueAgentConfigSchema.optional()));
+    const config = deepMerge(
+      this.options.agentDefaults,
+      agent.getAgentConfigSlice("queue", WorkQueueAgentConfigSchema.optional()),
+    );
 
     agent.initializeState(WorkQueueState, config);
   }
@@ -66,7 +68,7 @@ export default class WorkQueueService implements TokenRingService {
 
   /** Sets the current item being processed. */
   setCurrentItem(item: QueueItem | null, agent: Agent): void {
-    return agent.mutateState(WorkQueueState, (state: WorkQueueState) => {
+    agent.mutateState(WorkQueueState, (state: WorkQueueState) => {
       state.currentItem = item;
     });
   }

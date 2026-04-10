@@ -1,4 +1,4 @@
-import {AgentCheckpointData, AgentStateSlice} from "@tokenring-ai/agent/types";
+import {type AgentCheckpointData, AgentStateSlice,} from "@tokenring-ai/agent/types";
 import {z} from "zod";
 import type {WorkQueueAgentConfigSchema} from "../schema.ts";
 
@@ -9,18 +9,22 @@ export type QueueItem = {
 };
 
 const serializationSchema = z.object({
-  queue: z.array(z.object({
-    checkpoint: z.any(),
-    name: z.string(),
-    input: z.string()
-  })),
+  queue: z.array(
+    z.object({
+      checkpoint: z.any(),
+      name: z.string(),
+      input: z.string(),
+    }),
+  ),
   started: z.boolean(),
   currentItem: z.any().nullable(),
   initialCheckpoint: z.any().nullable(),
   maxSize: z.number().nullable(),
 });
 
-export class WorkQueueState extends AgentStateSlice<typeof serializationSchema> {
+export class WorkQueueState extends AgentStateSlice<
+  typeof serializationSchema
+> {
   /** The queue of work items. */
   queue: QueueItem[] = [];
   /** Whether the service has been started. */
@@ -31,7 +35,9 @@ export class WorkQueueState extends AgentStateSlice<typeof serializationSchema> 
   currentItem: QueueItem | null = null;
   maxSize: number | null = null;
 
-  constructor(readonly initialConfig: z.output<typeof WorkQueueAgentConfigSchema>) {
+  constructor(
+    readonly initialConfig: z.output<typeof WorkQueueAgentConfigSchema>,
+  ) {
     super("WorkQueueState", serializationSchema);
     this.maxSize = initialConfig.maxSize ?? null;
   }
@@ -49,7 +55,7 @@ export class WorkQueueState extends AgentStateSlice<typeof serializationSchema> 
       currentItem: this.currentItem,
       initialCheckpoint: this.initialCheckpoint,
       queue: this.queue,
-      maxSize: this.maxSize
+      maxSize: this.maxSize,
     };
   }
 
@@ -61,11 +67,9 @@ export class WorkQueueState extends AgentStateSlice<typeof serializationSchema> 
     this.maxSize = data.maxSize;
   }
 
-  show(): string[] {
-    return [
-      `Started: ${this.started}`,
-      `Queue Items: ${this.queue.length}`,
-      `Current Item: ${this.currentItem?.name || "None"}`
-    ];
+  show(): string {
+    return `Started: ${this.started}
+Queue Items: ${this.queue.length}
+Current Item: ${this.currentItem?.name || "None"}`;
   }
 }
