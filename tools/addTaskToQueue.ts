@@ -1,5 +1,5 @@
 import type Agent from "@tokenring-ai/agent/Agent";
-import type {TokenRingToolDefinition, TokenRingToolJSONResult,} from "@tokenring-ai/chat/schema";
+import type {TokenRingToolDefinition, TokenRingToolResult} from "@tokenring-ai/chat/schema";
 import {z} from "zod";
 import WorkQueueService from "../WorkQueueService.ts";
 
@@ -12,7 +12,7 @@ const displayName = "Queue/addTaskToQueue";
 function execute(
   {description, content}: z.output<typeof inputSchema>,
   agent: Agent,
-): TokenRingToolJSONResult<{ status: string; message: string }> {
+): TokenRingToolResult {
   const workQueueService = agent.requireServiceByType(WorkQueueService);
 
   // Prefix all chat output with the tool name
@@ -27,13 +27,10 @@ function execute(
     agent,
   );
 
-  return {
-    type: "json",
-    data: {
-      status: "queued",
-      message: `Task has been queued for later execution.`,
-    },
-  };
+  return JSON.stringify({
+    status: "queued",
+    message: `Task has been queued for later execution.`
+  });
 }
 
 const description =
