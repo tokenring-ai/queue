@@ -42,7 +42,7 @@ export const queueNext = {
 /queue next`,
   inputSchema,
   execute: async ({agent}: AgentCommandInputType<typeof inputSchema>) =>
-    await nextOrDone("next", agent),
+    nextOrDone("next", agent),
 } satisfies TokenRingAgentCommand<typeof inputSchema>;
 
 export const queueDone = {
@@ -55,5 +55,5 @@ export const queueDone = {
 /queue done`,
   inputSchema,
   execute: async ({agent}: AgentCommandInputType<typeof inputSchema>) =>
-    await nextOrDone("done", agent),
+    nextOrDone("done", agent),
 } satisfies TokenRingAgentCommand<typeof inputSchema>;
