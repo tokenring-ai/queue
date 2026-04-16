@@ -1,5 +1,5 @@
 import addTaskToQueue from "./tools/addTaskToQueue.ts";
 
-export default {
+export default [
   addTaskToQueue,
-};
+];

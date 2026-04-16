@@ -20,7 +20,7 @@ export default {
   description: packageJSON.description,
   install(app, config) {
     app.waitForService(ChatService, (chatService) =>
-      chatService.addTools(tools),
+      chatService.addTools(...tools),
     );
     app.waitForService(AgentCommandService, (agentCommandService) =>
       agentCommandService.addAgentCommands([...agentCommands]),
