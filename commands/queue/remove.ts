@@ -4,7 +4,7 @@ import WorkQueueService from "../../WorkQueueService.ts";
 
 const inputSchema = {
   args: {
-    "--index": {
+    "index": {
       type: "number",
       description: "Index of queue item",
       required: true,
@@ -27,7 +27,7 @@ export default {
               agent,
             }: AgentCommandInputType<typeof inputSchema>): string => {
     const workQueueService = agent.requireServiceByType(WorkQueueService);
-    const idx = args["--index"];
+    const idx = args.index;
     if (idx >= workQueueService.size(agent)) {
       throw new CommandFailedError("Index is larger than work queue size");
     }
