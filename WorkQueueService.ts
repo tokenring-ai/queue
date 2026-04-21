@@ -1,10 +1,10 @@
-import type {Agent} from "@tokenring-ai/agent";
-import type {AgentCheckpointData} from "@tokenring-ai/agent/types";
-import type {TokenRingService} from "@tokenring-ai/app/types";
+import type { Agent } from "@tokenring-ai/agent";
+import type { AgentCheckpointData } from "@tokenring-ai/agent/types";
+import type { TokenRingService } from "@tokenring-ai/app/types";
 import deepMerge from "@tokenring-ai/utility/object/deepMerge";
-import {type ParsedWorkQueueConfig, WorkQueueAgentConfigSchema} from "./schema.ts";
-import type {QueueItem} from "./state/workQueueState.ts";
-import {WorkQueueState} from "./state/workQueueState.ts";
+import { type ParsedWorkQueueConfig, WorkQueueAgentConfigSchema } from "./schema.ts";
+import type { QueueItem } from "./state/workQueueState.ts";
+import { WorkQueueState } from "./state/workQueueState.ts";
 
 /**
  * A service for managing a queue of work items.
@@ -16,14 +16,10 @@ export default class WorkQueueService implements TokenRingService {
   /**
    * Creates a new WorkQueueService instance.
    */
-  constructor(private readonly options: ParsedWorkQueueConfig) {
-  }
+  constructor(private readonly options: ParsedWorkQueueConfig) {}
 
   attach(agent: Agent): void {
-    const config = deepMerge(
-      this.options.agentDefaults,
-      agent.getAgentConfigSlice("queue", WorkQueueAgentConfigSchema.optional()),
-    );
+    const config = deepMerge(this.options.agentDefaults, agent.getAgentConfigSlice("queue", WorkQueueAgentConfigSchema));
 
     agent.initializeState(WorkQueueState, config);
   }
@@ -103,12 +99,7 @@ export default class WorkQueueService implements TokenRingService {
    * Modifies the queue by removing or replacing items.
    * Returns the removed items.
    */
-  splice(
-    start: number,
-    deleteCount: number,
-    agent: Agent,
-    ...items: QueueItem[]
-  ): QueueItem[] {
+  splice(start: number, deleteCount: number, agent: Agent, ...items: QueueItem[]): QueueItem[] {
     return agent.mutateState(WorkQueueState, (state: WorkQueueState) => {
       return state.queue.splice(start, deleteCount, ...items);
     });

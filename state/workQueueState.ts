@@ -1,6 +1,6 @@
-import {type AgentCheckpointData, AgentStateSlice} from "@tokenring-ai/agent/types";
-import {z} from "zod";
-import type {WorkQueueAgentConfigSchema} from "../schema.ts";
+import { type AgentCheckpointData, AgentStateSlice } from "@tokenring-ai/agent/types";
+import { z } from "zod";
+import type { WorkQueueAgentConfigSchema } from "../schema.ts";
 
 export type QueueItem = {
   checkpoint: AgentCheckpointData;
@@ -22,9 +22,7 @@ const serializationSchema = z.object({
   maxSize: z.number().nullable(),
 });
 
-export class WorkQueueState extends AgentStateSlice<
-  typeof serializationSchema
-> {
+export class WorkQueueState extends AgentStateSlice<typeof serializationSchema> {
   /** The queue of work items. */
   queue: QueueItem[] = [];
   /** Whether the service has been started. */
@@ -35,11 +33,9 @@ export class WorkQueueState extends AgentStateSlice<
   currentItem: QueueItem | null = null;
   maxSize: number | null = null;
 
-  constructor(
-    readonly initialConfig: z.output<typeof WorkQueueAgentConfigSchema>,
-  ) {
+  constructor(readonly initialConfig: z.output<typeof WorkQueueAgentConfigSchema>) {
     super("WorkQueueState", serializationSchema);
-    this.maxSize = initialConfig.maxSize ?? null;
+    this.maxSize = initialConfig?.maxSize ?? null;
   }
 
   reset() {

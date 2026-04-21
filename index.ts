@@ -1,1 +1,1 @@
-export {default as WorkQueueService} from "./WorkQueueService.ts";
+export { default as WorkQueueService } from "./WorkQueueService.ts";

@@ -1,6 +1,6 @@
 import type Agent from "@tokenring-ai/agent/Agent";
-import type {TokenRingToolDefinition, TokenRingToolResult} from "@tokenring-ai/chat/schema";
-import {z} from "zod";
+import type { TokenRingToolDefinition, TokenRingToolResult } from "@tokenring-ai/chat/schema";
+import { z } from "zod";
 import WorkQueueService from "../WorkQueueService.ts";
 
 /**
@@ -9,10 +9,7 @@ import WorkQueueService from "../WorkQueueService.ts";
 const name = "queue_addTaskToQueue";
 const displayName = "Queue/addTaskToQueue";
 
-function execute(
-  {description, content}: z.output<typeof inputSchema>,
-  agent: Agent,
-): TokenRingToolResult {
+function execute({ description, content }: z.output<typeof inputSchema>, agent: Agent): TokenRingToolResult {
   const workQueueService = agent.requireServiceByType(WorkQueueService);
 
   // Prefix all chat output with the tool name
@@ -29,31 +26,28 @@ function execute(
 
   return JSON.stringify({
     status: "queued",
-    message: `Task has been queued for later execution.`
+    message: `Task has been queued for later execution.`,
   });
 }
 
-const description =
-  "Adds a task to the queue for later execution by the system." as const;
+const description = "Adds a task to the queue for later execution by the system." as const;
 
 const inputSchema = z
   .object({
-    description: z
-      .string()
-      .describe("A short description of the task to be performed"),
+    description: z.string().describe("A short description of the task to be performed"),
     content: z
       .string()
       .describe(
         "A natural language string, explaining the exact task to be performed, in great detail. " +
-        "This string will be used to prompt an AI agent as the next message in this conversation, so should be as detailed as possible, " +
-        "and should directly order the AI agent to execute the task, using the tools that are available to it.",
+          "This string will be used to prompt an AI agent as the next message in this conversation, so should be as detailed as possible, " +
+          "and should directly order the AI agent to execute the task, using the tools that are available to it.",
       ),
   })
-  .refine((data) => data.description?.trim(), {
+  .refine(data => data.description?.trim(), {
     message: "Task description is required",
     path: ["description"],
   })
-  .refine((data) => data.content?.trim(), {
+  .refine(data => data.content?.trim(), {
     message: "Task content is required",
     path: ["content"],
   });

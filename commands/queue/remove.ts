@@ -1,10 +1,10 @@
-import {CommandFailedError} from "@tokenring-ai/agent/AgentError";
-import type {AgentCommandInputSchema, AgentCommandInputType, TokenRingAgentCommand} from "@tokenring-ai/agent/types";
+import { CommandFailedError } from "@tokenring-ai/agent/AgentError";
+import type { AgentCommandInputSchema, AgentCommandInputType, TokenRingAgentCommand } from "@tokenring-ai/agent/types";
 import WorkQueueService from "../../WorkQueueService.ts";
 
 const inputSchema = {
   args: {
-    "index": {
+    index: {
       type: "number",
       description: "Index of queue item",
       required: true,
@@ -22,10 +22,7 @@ export default {
 
 /queue remove 2`,
   inputSchema,
-  execute: ({
-              args,
-              agent,
-            }: AgentCommandInputType<typeof inputSchema>): string => {
+  execute: ({ args, agent }: AgentCommandInputType<typeof inputSchema>): string => {
     const workQueueService = agent.requireServiceByType(WorkQueueService);
     const idx = args.index;
     if (idx >= workQueueService.size(agent)) {

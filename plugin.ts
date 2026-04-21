@@ -1,11 +1,11 @@
-import {AgentCommandService} from "@tokenring-ai/agent";
-import type {TokenRingPlugin} from "@tokenring-ai/app";
-import {ChatService} from "@tokenring-ai/chat";
-import {z} from "zod";
+import { AgentCommandService } from "@tokenring-ai/agent";
+import type { TokenRingPlugin } from "@tokenring-ai/app";
+import { ChatService } from "@tokenring-ai/chat";
+import { z } from "zod";
 
 import agentCommands from "./commands.ts";
-import packageJSON from "./package.json" with {type: "json"};
-import {WorkQueueServiceConfigSchema} from "./schema.ts";
+import packageJSON from "./package.json" with { type: "json" };
+import { WorkQueueServiceConfigSchema } from "./schema.ts";
 import tools from "./tools.ts";
 import WorkQueueService from "./WorkQueueService.ts";
 
@@ -19,12 +19,8 @@ export default {
   version: packageJSON.version,
   description: packageJSON.description,
   install(app, config) {
-    app.waitForService(ChatService, (chatService) =>
-      chatService.addTools(...tools),
-    );
-    app.waitForService(AgentCommandService, (agentCommandService) =>
-      agentCommandService.addAgentCommands([...agentCommands]),
-    );
+    app.waitForService(ChatService, chatService => chatService.addTools(...tools));
+    app.waitForService(AgentCommandService, agentCommandService => agentCommandService.addAgentCommands([...agentCommands]));
     app.addServices(new WorkQueueService(config.queue));
   },
   config: packageConfigSchema,

@@ -1,4 +1,4 @@
-import type {AgentCommandInputSchema, AgentCommandInputType, TokenRingAgentCommand} from "@tokenring-ai/agent/types";
+import type { AgentCommandInputSchema, AgentCommandInputType, TokenRingAgentCommand } from "@tokenring-ai/agent/types";
 import WorkQueueService from "../../WorkQueueService.ts";
 
 const inputSchema = {
@@ -19,10 +19,7 @@ export default {
 
 /queue add Write a Python function to calculate Fibonacci numbers`,
   inputSchema,
-  execute: ({
-              remainder,
-              agent,
-            }: AgentCommandInputType<typeof inputSchema>): string => {
+  execute: ({ remainder, agent }: AgentCommandInputType<typeof inputSchema>): string => {
     const workQueueService = agent.requireServiceByType(WorkQueueService);
     workQueueService.enqueue(
       {
