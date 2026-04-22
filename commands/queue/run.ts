@@ -2,6 +2,7 @@ import { CommandFailedError } from "@tokenring-ai/agent/AgentError";
 import type { AgentCommandInputSchema, AgentCommandInputType, TokenRingAgentCommand } from "@tokenring-ai/agent/types";
 import { ChatService } from "@tokenring-ai/chat";
 import runChat from "@tokenring-ai/chat/runChat";
+import errorAsString from "@tokenring-ai/utility/error/errorAsString";
 import WorkQueueService from "../../WorkQueueService.ts";
 
 const inputSchema = {} as const satisfies AgentCommandInputSchema;
@@ -26,8 +27,8 @@ export default {
     const chatConfig = chatService.getChatConfig(agent);
     try {
       await runChat({ input, chatConfig, agent });
-    } catch (error: any) {
-      throw new CommandFailedError(`Error running queued prompt: ${error.message || error}`);
+    } catch (error) {
+      throw new CommandFailedError(`Error running queued prompt: ${errorAsString(error)}`);
     }
     return "Queue item executed.";
   },
