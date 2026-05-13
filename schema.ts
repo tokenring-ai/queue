@@ -1,8 +1,10 @@
 import { z } from "zod";
 
-export const WorkQueueAgentConfigSchema = z.object({
-  maxSize: z.number().positive().exactOptional(),
-}).optional();
+export const WorkQueueAgentConfigSchema = z
+  .object({
+    maxSize: z.number().positive().exactOptional(),
+  })
+  .optional();
 
 export const WorkQueueServiceConfigSchema = z.object({
   agentDefaults: z

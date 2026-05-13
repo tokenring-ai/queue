@@ -2,7 +2,9 @@
 
 ## Overview
 
-In-memory task management for sequential processing of agent prompts. This package enables sequential processing of work items while preserving agent state through checkpointing, making it ideal for batch processing, task management, and workflow orchestration.
+In-memory task management for sequential processing of agent prompts. This package enables sequential processing of work
+items while preserving agent state through checkpointing, making it ideal for batch processing, task management, and
+workflow orchestration.
 
 ### Key Features
 
@@ -46,39 +48,39 @@ const service = new WorkQueueService({
 
 #### Lifecycle Management Methods
 
-| Method | Description | Parameters | Returns |
-|--------|-------------|------------|---------|
-| `attach(agent)` | Initialize queue state on agent | `agent: Agent` | `void` |
-| `startWork(agent)` | Start queue processing | `agent: Agent` | `void` |
-| `stopWork(agent)` | Stop processing and clear current item | `agent: Agent` | `void` |
-| `started(agent)` | Check if queue is active | `agent: Agent` | `boolean` |
+| Method             | Description                            | Parameters     | Returns   |
+|--------------------|----------------------------------------|----------------|-----------|
+| `attach(agent)`    | Initialize queue state on agent        | `agent: Agent` | `void`    |
+| `startWork(agent)` | Start queue processing                 | `agent: Agent` | `void`    |
+| `stopWork(agent)`  | Stop processing and clear current item | `agent: Agent` | `void`    |
+| `started(agent)`   | Check if queue is active               | `agent: Agent` | `boolean` |
 
 #### Checkpoint Management Methods
 
-| Method | Description | Parameters | Returns |
-|--------|-------------|------------|---------|
-| `setInitialCheckpoint(checkpoint, agent)` | Set starting state checkpoint | `checkpoint: AgentCheckpointData`, `agent: Agent` | `void` |
-| `getInitialCheckpoint(agent)` | Get initial checkpoint | `agent: Agent` | `AgentCheckpointData \| null` |
+| Method                                    | Description                   | Parameters                                        | Returns                       |
+|-------------------------------------------|-------------------------------|---------------------------------------------------|-------------------------------|
+| `setInitialCheckpoint(checkpoint, agent)` | Set starting state checkpoint | `checkpoint: AgentCheckpointData`, `agent: Agent` | `void`                        |
+| `getInitialCheckpoint(agent)`             | Get initial checkpoint        | `agent: Agent`                                    | `AgentCheckpointData \| null` |
 
 #### Queue Operation Methods
 
-| Method | Description | Parameters | Returns |
-|--------|-------------|------------|---------|
-| `enqueue(item, agent)` | Add item to queue | `item: QueueItem`, `agent: Agent` | `boolean` |
-| `dequeue(agent)` | Remove and return front item | `agent: Agent` | `QueueItem \| undefined` |
-| `get(idx, agent)` | Get item at index | `idx: number`, `agent: Agent` | `QueueItem` |
-| `splice(start, deleteCount, agent, ...items)` | Modify queue like Array.splice | `start: number`, `deleteCount: number`, `agent: Agent`, `...items: QueueItem[]` | `QueueItem[]` |
-| `size(agent)` | Get current queue length | `agent: Agent` | `number` |
-| `isEmpty(agent)` | Check if queue is empty | `agent: Agent` | `boolean` |
-| `clear(agent)` | Empty the queue | `agent: Agent` | `void` |
-| `getAll(agent)` | Get copy of all items | `agent: Agent` | `QueueItem[]` |
+| Method                                        | Description                    | Parameters                                                                      | Returns                  |
+|-----------------------------------------------|--------------------------------|---------------------------------------------------------------------------------|--------------------------|
+| `enqueue(item, agent)`                        | Add item to queue              | `item: QueueItem`, `agent: Agent`                                               | `boolean`                |
+| `dequeue(agent)`                              | Remove and return front item   | `agent: Agent`                                                                  | `QueueItem \| undefined` |
+| `get(idx, agent)`                             | Get item at index              | `idx: number`, `agent: Agent`                                                   | `QueueItem`              |
+| `splice(start, deleteCount, agent, ...items)` | Modify queue like Array.splice | `start: number`, `deleteCount: number`, `agent: Agent`, `...items: QueueItem[]` | `QueueItem[]`            |
+| `size(agent)`                                 | Get current queue length       | `agent: Agent`                                                                  | `number`                 |
+| `isEmpty(agent)`                              | Check if queue is empty        | `agent: Agent`                                                                  | `boolean`                |
+| `clear(agent)`                                | Empty the queue                | `agent: Agent`                                                                  | `void`                   |
+| `getAll(agent)`                               | Get copy of all items          | `agent: Agent`                                                                  | `QueueItem[]`            |
 
 #### Current Item Management Methods
 
-| Method | Description | Parameters | Returns |
-|--------|-------------|------------|---------|
-| `getCurrentItem(agent)` | Get currently processing item | `agent: Agent` | `QueueItem \| null` |
-| `setCurrentItem(item, agent)` | Set current processing item | `item: QueueItem \| null`, `agent: Agent` | `void` |
+| Method                        | Description                   | Parameters                                | Returns             |
+|-------------------------------|-------------------------------|-------------------------------------------|---------------------|
+| `getCurrentItem(agent)`       | Get currently processing item | `agent: Agent`                            | `QueueItem \| null` |
+| `setCurrentItem(item, agent)` | Set current processing item   | `item: QueueItem \| null`, `agent: Agent` | `void`              |
 
 ### WorkQueueState
 
@@ -86,15 +88,15 @@ State management for queue operations. Implements `AgentStateSlice` for integrat
 
 **Properties:**
 
-| Property | Type | Description |
-|----------|------|-------------|
-| `queue` | `QueueItem[]` | Array of queue items |
-| `started` | `boolean` | Whether queue processing is active |
-| `initialCheckpoint` | `AgentCheckpointData \| null` | Preserved starting state |
-| `currentItem` | `QueueItem \| null` | Currently processing item |
-| `maxSize` | `number \| null` | Maximum queue size (if configured) |
-| `name` | `"WorkQueueState"` | State slice identifier |
-| `serializationSchema` | `z.ZodSchema` | Zod schema for serialization |
+| Property              | Type                          | Description                        |
+|-----------------------|-------------------------------|------------------------------------|
+| `queue`               | `QueueItem[]`                 | Array of queue items               |
+| `started`             | `boolean`                     | Whether queue processing is active |
+| `initialCheckpoint`   | `AgentCheckpointData \| null` | Preserved starting state           |
+| `currentItem`         | `QueueItem \| null`           | Currently processing item          |
+| `maxSize`             | `number \| null`              | Maximum queue size (if configured) |
+| `name`                | `"WorkQueueState"`            | State slice identifier             |
+| `serializationSchema` | `z.ZodSchema`                 | Zod schema for serialization       |
 
 **Constructor:**
 
@@ -108,17 +110,17 @@ const state = new WorkQueueState({
 
 **Methods:**
 
-| Method | Description | Parameters | Returns |
-|--------|-------------|------------|---------|
-| `reset()` | Reset all state components | None | `void` |
-| `serialize()` | Convert state to serializable format | None | `object` |
-| `deserialize(data)` | Restore state from data | `data: any` | `void` |
-| `show()` | Get human-readable state summary | None | `string[]` |
+| Method              | Description                          | Parameters  | Returns    |
+|---------------------|--------------------------------------|-------------|------------|
+| `reset()`           | Reset all state components           | None        | `void`     |
+| `serialize()`       | Convert state to serializable format | None        | `object`   |
+| `deserialize(data)` | Restore state from data              | `data: any` | `void`     |
+| `show()`            | Get human-readable state summary     | None        | `string[]` |
 
 ### QueueItem Interface
 
 ```typescript
-import type { AgentCheckpointData } from "@tokenring-ai/agent/types";
+import type {AgentCheckpointData} from "@tokenring-ai/agent/types";
 
 interface QueueItem {
   checkpoint: AgentCheckpointData;  // Saved agent state for this item
@@ -133,23 +135,23 @@ The package provides the `/queue` command for managing queue operations.
 
 ### Queue Management Commands
 
-| Command | Description | Example |
-|---------|-------------|---------|
-| `/queue add <prompt>` | Add a new prompt to the end of the queue | `/queue add Write a Python function to calculate Fibonacci numbers` |
-| `/queue remove --index <number>` | Remove the prompt at the given zero-based index | `/queue remove 2` |
-| `/queue details --index <number>` | Show detailed information about a specific queue item | `/queue details 0` |
-| `/queue clear` | Remove all prompts from the queue | `/queue clear` |
-| `/queue list` | Display all queued prompts with their indices | `/queue list` |
+| Command                           | Description                                           | Example                                                             |
+|-----------------------------------|-------------------------------------------------------|---------------------------------------------------------------------|
+| `/queue add <prompt>`             | Add a new prompt to the end of the queue              | `/queue add Write a Python function to calculate Fibonacci numbers` |
+| `/queue remove --index <number>`  | Remove the prompt at the given zero-based index       | `/queue remove 2`                                                   |
+| `/queue details --index <number>` | Show detailed information about a specific queue item | `/queue details 0`                                                  |
+| `/queue clear`                    | Remove all prompts from the queue                     | `/queue clear`                                                      |
+| `/queue list`                     | Display all queued prompts with their indices         | `/queue list`                                                       |
 
 ### Queue Processing Commands
 
-| Command | Description | Example |
-|---------|-------------|---------|
+| Command        | Description                                           | Example        |
+|----------------|-------------------------------------------------------|----------------|
 | `/queue start` | Begin queue processing (preserves current chat state) | `/queue start` |
-| `/queue next` | Load the next queued item (does not execute it) | `/queue next` |
-| `/queue run` | Execute the currently loaded queued prompt | `/queue run` |
-| `/queue skip` | Skip current item and re-add to end of queue | `/queue skip` |
-| `/queue done` | End queue processing and restore previous chat state | `/queue done` |
+| `/queue next`  | Load the next queued item (does not execute it)       | `/queue next`  |
+| `/queue run`   | Execute the currently loaded queued prompt            | `/queue run`   |
+| `/queue skip`  | Skip current item and re-add to end of queue          | `/queue skip`  |
+| `/queue done`  | End queue processing and restore previous chat state  | `/queue done`  |
 
 ## Tools
 
@@ -166,7 +168,7 @@ Adds a task to the queue for later execution by the system.
 **Input Schema:**
 
 ```typescript
-import { z } from "zod";
+import {z} from "zod";
 
 const inputSchema = z.object({
   description: z
@@ -398,8 +400,8 @@ import WorkQueueService from "@tokenring-ai/queue/WorkQueueService";
 import { WorkQueueState } from "@tokenring-ai/queue/state/workQueueState";
 
 // Create service with optional size limit
-const queueService = new WorkQueueService({ 
-  agentDefaults: { maxSize: 10 } 
+const queueService = new WorkQueueService({
+  agentDefaults: { maxSize: 10 }
 });
 
 // Attach to agent (initializes state)
@@ -524,7 +526,7 @@ for (let i = 0; i < 7; i++) {
     name: `Task ${i}`,
     input: `Process task ${i}`
   };
-  
+
   const added = boundedQueue.enqueue(item, agent);
   console.log(`Task ${i} added: ${added}`);
   // Tasks 0-4 will be added (true), tasks 5-6 will fail (false)
@@ -628,12 +630,12 @@ pkg/queue/
 ### Testing Examples
 
 ```typescript
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { Agent } from "@tokenring-ai/agent";
+import {describe, it, expect, beforeEach, afterEach, vi} from "vitest";
+import {Agent} from "@tokenring-ai/agent";
 import createTestingAgent from "@tokenring-ai/agent/test/createTestingAgent";
 import TokenRingApp from "@tokenring-ai/app";
 import createTestingApp from "@tokenring-ai/app/test/createTestingApp";
-import { WorkQueueState } from "../state/workQueueState.ts";
+import {WorkQueueState} from "../state/workQueueState.ts";
 import WorkQueueService from "../WorkQueueService.ts";
 
 describe("WorkQueueService", () => {

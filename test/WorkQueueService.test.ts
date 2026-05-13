@@ -1,18 +1,17 @@
-import {Agent} from "@tokenring-ai/agent";
+import { Agent } from "@tokenring-ai/agent";
 import createTestingAgent from "@tokenring-ai/agent/test/createTestingAgent";
 import TokenRingApp from "@tokenring-ai/app";
 import createTestingApp from "@tokenring-ai/app/test/createTestingApp";
-import {afterEach, beforeEach, describe, expect, it, vi} from "vitest";
-import {WorkQueueState} from "../state/workQueueState.ts";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { WorkQueueState } from "../state/workQueueState.ts";
 import WorkQueueService from "../WorkQueueService.ts";
 
 // Mock dependencies
 vi.mock("@tokenring-ai/chat/resources/ChatCommandRegistry", () => ({
- default: class MockChatCommandService {
-  commands = new Map();
- },
+  default: class MockChatCommandService {
+    commands = new Map();
+  },
 }));
-
 
 describe("WorkQueueService", () => {
 
@@ -53,7 +52,7 @@ describe("WorkQueueService", () => {
     const testAgent = createTestingAgent(testApp);
     const maxSize = 5;
     const testWorkQueueService = new WorkQueueService({
-      agentDefaults: {maxSize},
+      agentDefaults: { maxSize },
     });
     testApp.addServices(testWorkQueueService);
     testWorkQueueService.attach(testAgent);
@@ -67,8 +66,8 @@ describe("WorkQueueService", () => {
 
   // Test 3: Enqueue with unlimited queue
   it("should add items to an unlimited queue", () => {
-    const item1 = {name: "item1", checkpoint: {} as any, input: ""};
-    const item2 = {name: "item2", checkpoint: {} as any, input: ""};
+    const item1 = { name: "item1", checkpoint: {} as any, input: "" };
+    const item2 = { name: "item2", checkpoint: {} as any, input: "" };
 
     // Execute
     const result1 = workQueueService.enqueue(item1, agent);
@@ -89,14 +88,14 @@ describe("WorkQueueService", () => {
     const testApp = createTestingApp();
     const testAgent = createTestingAgent(testApp);
     const testWorkQueueService = new WorkQueueService({
-      agentDefaults: {maxSize: 2},
+      agentDefaults: { maxSize: 2 },
     });
     testApp.addServices(testWorkQueueService);
     testWorkQueueService.attach(testAgent);
 
-    const item1 = {name: "item1", checkpoint: {} as any, input: ""};
-    const item2 = {name: "item2", checkpoint: {} as any, input: ""};
-    const item3 = {name: "item3", checkpoint: {} as any, input: ""};
+    const item1 = { name: "item1", checkpoint: {} as any, input: "" };
+    const item2 = { name: "item2", checkpoint: {} as any, input: "" };
+    const item3 = { name: "item3", checkpoint: {} as any, input: "" };
 
     // Execute
     const result1 = testWorkQueueService.enqueue(item1, testAgent);
@@ -125,8 +124,8 @@ describe("WorkQueueService", () => {
   // Test 6: Dequeue from non-empty queue
   it("should return and remove the first item when dequeuing", () => {
     // Setup
-    const item1 = {name: "item1", checkpoint: {} as any, input: ""};
-    const item2 = {name: "item2", checkpoint: {} as any, input: ""};
+    const item1 = { name: "item1", checkpoint: {} as any, input: "" };
+    const item2 = { name: "item2", checkpoint: {} as any, input: "" };
     workQueueService.enqueue(item1, agent);
     workQueueService.enqueue(item2, agent);
 
@@ -150,8 +149,8 @@ describe("WorkQueueService", () => {
     testApp.addServices(testWorkQueueService);
     testWorkQueueService.attach(testAgent);
 
-    const message = {id: "test-message"} as any;
-    const item = {name: "test-item", checkpoint: {} as any, input: ""};
+    const message = { id: "test-message" } as any;
+    const item = { name: "test-item", checkpoint: {} as any, input: "" };
 
     // Execute and verify start/started
     expect(testWorkQueueService.started(testAgent)).toBe(false);
@@ -179,9 +178,9 @@ describe("WorkQueueService", () => {
     testApp.addServices(testWorkQueueService);
     testWorkQueueService.attach(testAgent);
 
-    const item1 = {name: "item1", checkpoint: {} as any, input: ""};
-    const item2 = {name: "item2", checkpoint: {} as any, input: ""};
-    const item3 = {name: "item3", checkpoint: {} as any, input: ""};
+    const item1 = { name: "item1", checkpoint: {} as any, input: "" };
+    const item2 = { name: "item2", checkpoint: {} as any, input: "" };
+    const item3 = { name: "item3", checkpoint: {} as any, input: "" };
 
     // Test enqueue and size
     testWorkQueueService.enqueue(item1, testAgent);
@@ -217,7 +216,7 @@ describe("WorkQueueService", () => {
 
   // Test 9: Stop work clears current item
   it("should clear current item when stopping work", () => {
-    const item = {name: "test-item", checkpoint: {} as any, input: ""};
+    const item = { name: "test-item", checkpoint: {} as any, input: "" };
     workQueueService.setCurrentItem(item, agent);
     expect(workQueueService.getCurrentItem(agent)).toBe(item);
 
@@ -231,9 +230,9 @@ describe("WorkQueueService", () => {
 
   // Test 10: get() returns item at index
   it("should return item at specified index", () => {
-    const item1 = {name: "item1", checkpoint: {} as any, input: ""};
-    const item2 = {name: "item2", checkpoint: {} as any, input: ""};
-    const item3 = {name: "item3", checkpoint: {} as any, input: ""};
+    const item1 = { name: "item1", checkpoint: {} as any, input: "" };
+    const item2 = { name: "item2", checkpoint: {} as any, input: "" };
+    const item3 = { name: "item3", checkpoint: {} as any, input: "" };
 
     workQueueService.enqueue(item1, agent);
     workQueueService.enqueue(item2, agent);
