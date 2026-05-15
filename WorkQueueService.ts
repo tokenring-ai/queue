@@ -1,7 +1,7 @@
 import type { Agent } from "@tokenring-ai/agent";
 import type { AgentCheckpointData } from "@tokenring-ai/agent/types";
 import type { TokenRingService } from "@tokenring-ai/app/types";
-import deepMerge from "@tokenring-ai/utility/object/deepMerge";
+import deepClone from "@tokenring-ai/utility/object/deepClone";
 import { type ParsedWorkQueueConfig, WorkQueueAgentConfigSchema } from "./schema.ts";
 import type { QueueItem } from "./state/workQueueState.ts";
 import { WorkQueueState } from "./state/workQueueState.ts";
@@ -19,7 +19,7 @@ export default class WorkQueueService implements TokenRingService {
   constructor(private readonly options: ParsedWorkQueueConfig) {}
 
   attach(agent: Agent): void {
-    const config = deepMerge(this.options.agentDefaults, agent.getAgentConfigSlice("queue", WorkQueueAgentConfigSchema));
+    const config = deepClone(this.options.agentDefaults, agent.getAgentConfigSlice("queue", WorkQueueAgentConfigSchema));
 
     agent.initializeState(WorkQueueState, config);
   }
