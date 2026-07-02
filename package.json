@@ -4,7 +4,7 @@
   "description": "In-memory task management for sequential processing of agent prompts.",
   "dependencies": {
     "@tokenring-ai/app": "workspace:*",
-    "zod": "^4.3.6",
+    "zod": "^4.4.3",
     "@tokenring-ai/chat": "workspace:*",
     "@tokenring-ai/agent": "workspace:*",
     "@tokenring-ai/utility": "workspace:*"
