@@ -634,7 +634,7 @@ import {describe, it, expect, beforeEach, afterEach, vi} from "vitest";
 import {Agent} from "@tokenring-ai/agent";
 import createTestingAgent from "@tokenring-ai/agent/test/createTestingAgent";
 import TokenRingApp from "@tokenring-ai/app";
-import createTestingApp from "@tokenring-ai/app/test/createTestingApp";
+import createTestingApp from "@tokenring-ai/app/test/createTestingApp.test";
 import {WorkQueueState} from "../state/workQueueState.ts";
 import WorkQueueService from "../WorkQueueService.ts";
 

@@ -1,7 +1,7 @@
 import { Agent } from "@tokenring-ai/agent";
-import createTestingAgent from "@tokenring-ai/agent/test/createTestingAgent";
+import createTestingAgent from "@tokenring-ai/agent/test/createTestingAgent.test";
 import TokenRingApp from "@tokenring-ai/app";
-import createTestingApp from "@tokenring-ai/app/test/createTestingApp";
+import createTestingApp from "@tokenring-ai/app/test/createTestingApp.test";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { WorkQueueState } from "../state/workQueueState.ts";
 import WorkQueueService from "../WorkQueueService.ts";
