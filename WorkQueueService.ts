@@ -91,7 +91,7 @@ export default class WorkQueueService implements TokenRingService {
   }
 
   /** Gets the item at the specified index in the queue. */
-  get(idx: number, agent: Agent): QueueItem {
+  get(idx: number, agent: Agent): QueueItem | undefined {
     return agent.getState(WorkQueueState).queue[idx];
   }
 

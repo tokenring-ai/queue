@@ -25,10 +25,13 @@ export default {
   execute: ({ args, agent }: AgentCommandInputType<typeof inputSchema>): string => {
     const workQueueService = agent.requireServiceByType(WorkQueueService);
     const idx = args.index;
+    if (idx < 0) {
+      throw new CommandFailedError("Index must be positive");
+    }
     if (idx >= workQueueService.size(agent)) {
       throw new CommandFailedError("Index is larger than work queue size");
     }
-    const removed = workQueueService.splice(idx, 1, agent)[0];
+    const removed = workQueueService.splice(idx, 1, agent)[0]!;
     return `Removed "${removed.name}" from queue. Remaining: ${workQueueService.size(agent)}`;
   },
 } satisfies TokenRingAgentCommand<typeof inputSchema>;
