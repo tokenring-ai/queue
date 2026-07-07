@@ -1,5 +1,4 @@
-import { AgentCheckpointSchema } from "@tokenring-ai/agent/types";
-import { type AgentCheckpointData, AgentStateSlice } from "@tokenring-ai/agent/types";
+import { type AgentCheckpointData, AgentCheckpointSchema, AgentStateSlice } from "@tokenring-ai/agent/types";
 import { z } from "zod";
 import type { WorkQueueAgentConfigSchema } from "../schema.ts";
 
