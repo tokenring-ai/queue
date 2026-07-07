@@ -1,24 +1,20 @@
+import { AgentCheckpointSchema } from "@tokenring-ai/agent/types";
 import { type AgentCheckpointData, AgentStateSlice } from "@tokenring-ai/agent/types";
 import { z } from "zod";
 import type { WorkQueueAgentConfigSchema } from "../schema.ts";
 
-export type QueueItem = {
-  checkpoint: AgentCheckpointData;
-  name: string;
-  input: string;
-};
+export const QueueItemSchema = z.object({
+  checkpoint: AgentCheckpointSchema,
+  name: z.string(),
+  input: z.string(),
+});
+export type QueueItem = z.infer<typeof QueueItemSchema>;
 
 const serializationSchema = z.object({
-  queue: z.array(
-    z.object({
-      checkpoint: z.any(),
-      name: z.string(),
-      input: z.string(),
-    }),
-  ),
+  queue: z.array(QueueItemSchema),
   started: z.boolean(),
-  currentItem: z.any().nullable(),
-  initialCheckpoint: z.any().nullable(),
+  currentItem: QueueItemSchema.nullable(),
+  initialCheckpoint: AgentCheckpointSchema.nullable(),
   maxSize: z.number().nullable(),
 });
 

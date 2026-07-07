@@ -43,11 +43,11 @@ const inputSchema = z
           "and should directly order the AI agent to execute the task, using the tools that are available to it.",
       ),
   })
-  .refine(data => data.description?.trim(), {
+  .refine(data => data.description.trim(), {
     message: "Task description is required",
     path: ["description"],
   })
-  .refine(data => data.content?.trim(), {
+  .refine(data => data.content.trim(), {
     message: "Task content is required",
     path: ["content"],
   });
