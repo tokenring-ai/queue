@@ -20,7 +20,7 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage"
   },
-  "types": "./index.d.ts",
+  "types": "./index.ts",
   "devDependencies": {
     "typescript": "^6.0.2",
     "vitest": "^4.1.1"
