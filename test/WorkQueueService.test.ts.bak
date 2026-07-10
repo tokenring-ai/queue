@@ -1,19 +1,20 @@
-import { afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
-import type { Agent } from "@tokenring-ai/agent";
+import { Agent } from "@tokenring-ai/agent";
 import createTestingAgent from "@tokenring-ai/agent/test/createTestingAgent.test";
-import type TokenRingApp from "@tokenring-ai/app";
+import TokenRingApp from "@tokenring-ai/app";
 import createTestingApp from "@tokenring-ai/app/test/createTestingApp.test";
+import { afterEach,beforeEach,describe,expect,it,mock } from "bun:test";
 import { WorkQueueState } from "../state/workQueueState.ts";
 import WorkQueueService from "../WorkQueueService.ts";
 
 // Mock dependencies
-void mock.module("@tokenring-ai/chat/resources/ChatCommandRegistry", () => ({
+mock.module("@tokenring-ai/chat/resources/ChatCommandRegistry", () => ({
   default: class MockChatCommandService {
     commands = new Map();
   },
 }));
 
 describe("WorkQueueService", () => {
+
   let app: TokenRingApp;
   let workQueueService!: WorkQueueService;
   let agent!: Agent;
