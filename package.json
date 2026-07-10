@@ -1,12 +1,13 @@
 {
   "name": "@tokenring-ai/queue",
-  "version": "0.2.0",
-  "description": "In-memory task management for sequential processing of agent prompts.",
+  "version": "0.3.0",
+  "description": "App-level work queue that dispatches items to agents of a specific type.",
   "dependencies": {
     "@tokenring-ai/app": "workspace:*",
     "zod": "^4.4.3",
     "@tokenring-ai/chat": "workspace:*",
     "@tokenring-ai/agent": "workspace:*",
+    "@tokenring-ai/rpc": "workspace:*",
     "@tokenring-ai/utility": "workspace:*"
   },
   "exports": {

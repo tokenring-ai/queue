@@ -1,37 +1,49 @@
 import { CommandFailedError } from "@tokenring-ai/agent/AgentError";
 import type { AgentCommandInputSchema, AgentCommandInputType, TokenRingAgentCommand } from "@tokenring-ai/agent/types";
-import WorkQueueService from "../../WorkQueueService.ts";
+import QueueService from "../../QueueService.ts";
 
 const inputSchema = {
   args: {
-    index: {
-      type: "number",
-      description: "Index of queue item",
-      required: true,
-      minimum: 0,
+    queue: {
+      type: "string",
+      description: "The name of the queue (defaults to 'default')",
     },
   },
+  positionals: [
+    {
+      name: "position",
+      description: "The 1-based position of the pending item to remove (see /queue list)",
+      required: true,
+    },
+  ],
 } as const satisfies AgentCommandInputSchema;
 
 export default {
   name: "queue remove",
-  description: "Remove a prompt from the queue",
-  help: `Remove the prompt at the given zero-based index.
+  description: "Remove a pending item from a queue by position",
+  help: `Remove a pending item from a queue by its 1-based position.
 
 ## Example
 
+/queue list
 /queue remove 2`,
   inputSchema,
-  execute: ({ args, agent }: AgentCommandInputType<typeof inputSchema>): string => {
-    const workQueueService = agent.requireServiceByType(WorkQueueService);
-    const idx = args.index;
-    if (idx < 0) {
-      throw new CommandFailedError("Index must be positive");
+  execute: ({ args, positionals, agent }: AgentCommandInputType<typeof inputSchema>): string => {
+    const queueService = agent.requireServiceByType(QueueService);
+    const queueName = args.queue || "default";
+
+    const position = Number.parseInt(positionals.position, 10);
+    if (!Number.isFinite(position) || position < 1) {
+      throw new CommandFailedError("Position must be a positive number (see /queue list)");
     }
-    if (idx >= workQueueService.size(agent)) {
-      throw new CommandFailedError("Index is larger than work queue size");
+
+    const pending = queueService.getPending(queueName);
+    const item = pending[position - 1];
+    if (!item) {
+      throw new CommandFailedError(`No pending item at position ${position} (queue has ${pending.length} pending item(s))`);
     }
-    const removed = workQueueService.splice(idx, 1, agent)[0]!;
-    return `Removed "${removed.name}" from queue. Remaining: ${workQueueService.size(agent)}`;
+
+    const removed = queueService.removeItem(queueName, item.id);
+    return removed ? `Removed "${item.name}" from queue "${queueName}".` : `Could not remove item (it may have already started).`;
   },
 } satisfies TokenRingAgentCommand<typeof inputSchema>;

@@ -1,16 +1,18 @@
 import { AgentCommandService } from "@tokenring-ai/agent";
 import type { TokenRingPlugin } from "@tokenring-ai/app";
 import { ChatService } from "@tokenring-ai/chat";
+import { RpcService } from "@tokenring-ai/rpc";
 import { z } from "zod";
 
 import agentCommands from "./commands.ts";
 import packageJSON from "./package.json" with { type: "json" };
-import { WorkQueueServiceConfigSchema } from "./schema.ts";
+import QueueService from "./QueueService.ts";
+import queueRPC from "./rpc/queue.ts";
+import { QueueServiceConfigSchema } from "./schema.ts";
 import tools from "./tools.ts";
-import WorkQueueService from "./WorkQueueService.ts";
 
 const packageConfigSchema = z.object({
-  queue: WorkQueueServiceConfigSchema.prefault({}),
+  queue: QueueServiceConfigSchema.prefault({}),
 });
 
 export default {
@@ -21,7 +23,10 @@ export default {
   install(app, config) {
     app.waitForService(ChatService, chatService => chatService.addTools(...tools));
     app.waitForService(AgentCommandService, agentCommandService => agentCommandService.addAgentCommands([...agentCommands]));
-    app.addServices(new WorkQueueService(config.queue));
+    app.waitForService(RpcService, rpcService => {
+      rpcService.registerEndpoint(queueRPC);
+    });
+    app.addServices(new QueueService(app, config.queue));
   },
   config: packageConfigSchema,
 } satisfies TokenRingPlugin<typeof packageConfigSchema>;

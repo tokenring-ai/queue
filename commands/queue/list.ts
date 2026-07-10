@@ -1,21 +1,50 @@
 import type { AgentCommandInputSchema, AgentCommandInputType, TokenRingAgentCommand } from "@tokenring-ai/agent/types";
 import numberedList from "@tokenring-ai/utility/string/numberedList";
-import WorkQueueService from "../../WorkQueueService.ts";
+import QueueService from "../../QueueService.ts";
 
-const inputSchema = {} as const satisfies AgentCommandInputSchema;
+const inputSchema = {
+  args: {
+    queue: {
+      type: "string",
+      description: "The name of the queue to inspect (defaults to 'default')",
+    },
+    all: {
+      type: "flag",
+      description: "Include items that are currently running",
+    },
+  },
+} as const satisfies AgentCommandInputSchema;
 
 export default {
   name: "queue list",
-  description: "Display all queued prompts",
-  help: `Display all queued prompts with their indices.
+  description: "Display the items waiting on a queue",
+  help: `Display the items waiting on a queue.
 
-## Example
+## Examples
 
-/queue list`,
+/queue list
+/queue list --queue research
+/queue list --all`,
   inputSchema,
-  execute: ({ agent }: AgentCommandInputType<typeof inputSchema>): string => {
-    const workQueueService = agent.requireServiceByType(WorkQueueService);
-    if (workQueueService.size(agent) === 0) return "Queue is empty.";
-    return ["Queue contents:", numberedList(workQueueService.getAll(agent).map(({ name }) => name))].join("\n");
+  execute: ({ args, agent }: AgentCommandInputType<typeof inputSchema>): string => {
+    const queueService = agent.requireServiceByType(QueueService);
+    const queueName = args.queue || "default";
+
+    const pending = queueService.getPending(queueName);
+    const running = args.all ? queueService.getRunning(queueName) : [];
+
+    const lines = [`=== Queue "${queueName}" ===`];
+
+    if (pending.length === 0) {
+      lines.push("No pending items.");
+    } else {
+      lines.push("Pending:", numberedList(pending.map(item => `${item.name} (id: ${item.id})`)));
+    }
+
+    if (running.length > 0) {
+      lines.push("Running:", numberedList(running.map(item => `${item.name} (agent: ${item.agentId ?? "?"})`)));
+    }
+
+    return lines.join("\n");
   },
 } satisfies TokenRingAgentCommand<typeof inputSchema>;

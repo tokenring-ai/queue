@@ -1,34 +1,37 @@
 import type { AgentCommandInputSchema, AgentCommandInputType, TokenRingAgentCommand } from "@tokenring-ai/agent/types";
-import WorkQueueService from "../../WorkQueueService.ts";
+import QueueService from "../../QueueService.ts";
 
 const inputSchema = {
-  args: {},
+  args: {
+    queue: {
+      type: "string",
+      description: "The name of the queue to add to (defaults to 'default')",
+    },
+  },
   remainder: {
     name: "prompt",
-    description: "Prompt to add to queue",
+    description: "The task to add to the queue",
     required: true,
   },
 } as const satisfies AgentCommandInputSchema;
 
 export default {
   name: "queue add",
-  description: "Add a prompt to the queue",
-  help: `Add a new prompt to the end of the queue.
+  description: "Add a task to a queue",
+  help: `Add a new task to the end of a queue. A fresh agent of the queue's assigned type will be spawned to run it.
 
-## Example
+## Examples
 
-/queue add Write a Python function to calculate Fibonacci numbers`,
+/queue add Write a Python function to calculate Fibonacci numbers
+/queue add --queue research Summarize the latest findings on topic X`,
   inputSchema,
-  execute: ({ remainder, agent }: AgentCommandInputType<typeof inputSchema>): string => {
-    const workQueueService = agent.requireServiceByType(WorkQueueService);
-    workQueueService.enqueue(
-      {
-        checkpoint: agent.generateCheckpoint(),
-        name: remainder,
-        input: remainder,
-      },
-      agent,
-    );
-    return `Added to queue. Queue length: ${workQueueService.size(agent)}`;
+  execute: ({ args, remainder, agent }: AgentCommandInputType<typeof inputSchema>): string => {
+    const queueService = agent.requireServiceByType(QueueService);
+    const queueName = args.queue || "default";
+
+    const item = queueService.enqueue(queueName, { name: remainder, input: remainder, from: `user:${agent.id}` });
+    const pending = queueService.getPending(queueName);
+
+    return `Added to queue "${queueName}" (id: ${item.id}). Position: ${pending.length}.`;
   },
 } satisfies TokenRingAgentCommand<typeof inputSchema>;
