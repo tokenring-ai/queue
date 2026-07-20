@@ -23,7 +23,7 @@
   },
   "types": "./index.ts",
   "devDependencies": {
-    "typescript": "^6.0.2"
+    "typescript": "^7.0.2"
   },
   "type": "module"
 }
