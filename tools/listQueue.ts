@@ -19,25 +19,28 @@ function execute({ queueName, includeRunning }: z.output<typeof inputSchema>, ag
   const pending = queueService.getPending(queue);
   const running = includeRunning ? queueService.getRunning(queue) : [];
 
-  return JSON.stringify({
-    queueName: queue,
-    pending: pending.map((item, index) => ({
-      position: index + 1,
-      id: item.id,
-      name: item.name,
-      createdAt: item.createdAt,
-    })),
-    ...(running.length > 0
-      ? {
-          running: running.map(item => ({
-            id: item.id,
-            name: item.name,
-            agentId: item.agentId,
-            startedAt: item.startedAt,
-          })),
-        }
-      : {}),
-  });
+  return {
+    message: `**Task Queue** Listed tasks in queue ${queue}`,
+    result: JSON.stringify({
+      queueName: queue,
+      pending: pending.map((item, index) => ({
+        position: index + 1,
+        id: item.id,
+        name: item.name,
+        createdAt: item.createdAt,
+      })),
+      ...(running.length > 0
+        ? {
+            running: running.map(item => ({
+              id: item.id,
+              name: item.name,
+              agentId: item.agentId,
+              startedAt: item.startedAt,
+            })),
+          }
+        : {}),
+    }),
+  };
 }
 
 export default {

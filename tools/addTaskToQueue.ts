@@ -37,12 +37,15 @@ function execute({ queueName, description, content }: z.output<typeof inputSchem
 
   agent.infoMessage(`[${name}] Added task "${description}" to queue "${queue}"`);
 
-  return JSON.stringify({
-    status: "queued",
-    itemId: item.id,
-    queueName: queue,
-    message: `Task has been queued for execution by a "${queueService.getQueueConfig(queue)?.agentType}" agent.`,
-  });
+  return {
+    message: `**Task Queue** Added task to queue ${queue}`,
+    result: JSON.stringify({
+      status: "queued",
+      itemId: item.id,
+      queueName: queue,
+      message: `Task has been queued for execution by a "${queueService.getQueueConfig(queue)?.agentType}" agent.`,
+    }),
+  };
 }
 
 export default {

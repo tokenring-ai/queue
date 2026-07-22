@@ -19,18 +19,21 @@ function execute({ queueName, limit, status }: z.output<typeof inputSchema>, age
 
   const results = queueService.getResults(queue, limit ?? 20, status);
 
-  return JSON.stringify({
-    queueName: queue,
-    count: results.length,
-    results: results.map(item => ({
-      id: item.id,
-      name: item.name,
-      status: item.status,
-      resultMessage: item.resultMessage,
-      durationMs: item.durationMs,
-      completedAt: item.completedAt,
-    })),
-  });
+  return {
+    message: `**Task Queue** Retrieved queue results for ${queue}`,
+    result: JSON.stringify({
+      queueName: queue,
+      count: results.length,
+      results: results.map(item => ({
+        id: item.id,
+        name: item.name,
+        status: item.status,
+        resultMessage: item.resultMessage,
+        durationMs: item.durationMs,
+        completedAt: item.completedAt,
+      })),
+    }),
+  };
 }
 
 export default {

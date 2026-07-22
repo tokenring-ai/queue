@@ -18,12 +18,15 @@ function execute({ queueName, itemId }: z.output<typeof inputSchema>, agent: Age
 
   const cancelled = queueService.cancelItem(queue, itemId);
 
-  return JSON.stringify({
-    status: cancelled ? "cancelled" : "not_found",
-    itemId,
-    queueName: queue,
-    message: cancelled ? "Item was cancelled." : "No pending or running item was found with that id.",
-  });
+  return {
+    message: `**Task Queue** Cancelled task ${itemId}`,
+    result: JSON.stringify({
+      status: cancelled ? "cancelled" : "not_found",
+      itemId,
+      queueName: queue,
+      message: cancelled ? "Item was cancelled." : "No pending or running item was found with that id.",
+    }),
+  };
 }
 
 export default {
