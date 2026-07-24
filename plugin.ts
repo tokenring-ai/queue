@@ -28,5 +28,5 @@ export default {
     });
     app.addServices(new QueueService(app, config.queue));
   },
-  config: packageConfigSchema,
+  configSchema: packageConfigSchema,
 } satisfies TokenRingPlugin<typeof packageConfigSchema>;
