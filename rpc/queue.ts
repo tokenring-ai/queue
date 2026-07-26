@@ -9,7 +9,7 @@ import QueueRpcSchema from "./schema.ts";
 /** Project the live QueueState into a wire-safe record of queue snapshots. */
 function snapshot(state: QueueState): Record<string, QueueData> {
   const queues: Record<string, QueueData> = {};
-  for (const [name, data] of state.queues.entries()) {
+  for (const [name, data] of state.queues) {
     queues[name] = {
       config: { ...data.config },
       items: data.items.map(i => ({ ...i })),

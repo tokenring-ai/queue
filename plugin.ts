@@ -22,7 +22,7 @@ export default {
   description: packageJSON.description,
   install(app, config) {
     app.waitForService(ChatService, chatService => chatService.addTools(...tools));
-    app.waitForService(AgentCommandService, agentCommandService => agentCommandService.addAgentCommands([...agentCommands]));
+    app.waitForService(AgentCommandService, agentCommandService => agentCommandService.addAgentCommands(agentCommands));
     app.waitForService(RpcService, rpcService => {
       rpcService.registerEndpoint(queueRPC);
     });

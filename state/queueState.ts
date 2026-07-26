@@ -1,4 +1,5 @@
 import { AppStateSlice } from "@tokenring-ai/app/types";
+import EnhancedMap from "@tokenring-ai/utility/map/enhancedMap";
 import { z } from "zod";
 import type { ParsedQueueConfig, QueueConfig } from "../schema.ts";
 import { QueueConfigSchema } from "../schema.ts";
@@ -62,7 +63,7 @@ const serializationSchema = z.object({
  * queue's `maxResults`.
  */
 export class QueueState extends AppStateSlice<typeof serializationSchema> {
-  queues = new Map<string, QueueData>();
+  queues = new EnhancedMap<string, QueueData>();
 
   constructor(private readonly options: ParsedQueueConfig) {
     super("QueueState", serializationSchema);
@@ -84,7 +85,7 @@ export class QueueState extends AppStateSlice<typeof serializationSchema> {
   }
 
   private buildQueuesFromConfig(): void {
-    this.queues = new Map();
+    this.queues = new EnhancedMap();
 
     const configured = this.options.queues;
     const defaultCfg = configured.default;
@@ -107,9 +108,7 @@ export class QueueState extends AppStateSlice<typeof serializationSchema> {
 
   serialize(): z.output<typeof serializationSchema> {
     return {
-      queues: Object.fromEntries(
-        Array.from(this.queues.entries()).map(([name, data]) => [name, { config: data.config, items: data.items, results: data.results }]),
-      ),
+      queues: Object.fromEntries(this.queues.mapEntries(([name, data]) => [name, { config: data.config, items: data.items, results: data.results }])),
     };
   }
 

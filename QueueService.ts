@@ -55,7 +55,7 @@ export default class QueueService implements TokenRingService {
   // ---------------------------------------------------------------------------
 
   getQueueNames(): string[] {
-    return Array.from(this.state().queues.keys());
+    return this.state().queues.keysArray();
   }
 
   getQueueConfig(name: string): QueueConfig | undefined {
@@ -226,7 +226,7 @@ export default class QueueService implements TokenRingService {
     type Pending = { queueName: string; config: QueueConfig; items: QueueItem[] };
     const work: Pending[] = [];
 
-    for (const [queueName, data] of snapshot.queues.entries()) {
+    for (const [queueName, data] of snapshot.queues) {
       const runningCount = data.items.filter(i => i.status === "running").length;
       const slots = data.config.concurrency - runningCount;
       if (slots <= 0) continue;
