@@ -6,8 +6,8 @@ import { AgentEventState } from "@tokenring-ai/agent/state/agentEventState";
 import type TokenRingApp from "@tokenring-ai/app";
 import type { TokenRingService } from "@tokenring-ai/app/types";
 import { ConfigurationError } from "@tokenring-ai/app/types";
-import type { ParsedQueueConfig, QueueConfig } from "./schema.ts";
-import type { QueueData, QueueItem, ResultItem, ResultItemStatus } from "./state/queueState.ts";
+import { type ParsedQueueConfig, type QueueConfig, QueueServiceConfigSchema } from "./schema.ts";
+import type { QueueItem, QueueRuntimeData, ResultItem, ResultItemStatus } from "./state/queueState.ts";
 import { QueueState } from "./state/queueState.ts";
 
 type RunningItem = { agentId: string; requestId: string };
@@ -21,8 +21,10 @@ type NewItemInput = {
 /**
  * App-level work queue service.
  *
- * Holds one or more named queues (a `default` queue always exists). Each queue is assigned an
- * agent type and a concurrency. When items are enqueued, the dispatcher loop spawns a fresh
+ * Queue *definitions* (agent type, concurrency, limits) are owned by this service via
+ * {@link reconfigure}. App state only tracks runtime items and results.
+ *
+ * A `default` queue always exists. When items are enqueued, the dispatcher loop spawns a fresh
  * headless agent of the queue's agent type for each item (up to `concurrency` at a time), runs
  * the item, captures the result, and then deletes the agent. Agents are never reused across items.
  */
@@ -32,22 +34,75 @@ export default class QueueService implements TokenRingService {
 
   private readonly running = new Map<string, RunningItem>();
   private isStopping = false;
+  private options = QueueServiceConfigSchema.parse({});
+  /** Resolved per-queue definitions, keyed by queue name. Source of truth for config. */
+  private queueConfigs = new Map<string, QueueConfig>();
 
   constructor(
     private readonly app: TokenRingApp,
-    private readonly options: ParsedQueueConfig,
+    options?: ParsedQueueConfig,
   ) {
-    this.app.stateManager.initializeState(QueueState, options);
+    this.app.stateManager.initializeState(QueueState, {});
+    if (options) {
+      this.applyOptions(options);
+    } else {
+      this.rebuildQueueConfigs();
+    }
+  }
+
+  /**
+   * Replaces service-owned queue definitions from package config.
+   * Does not mutate app state — runtime buckets are created lazily when used.
+   */
+  reconfigure(options: ParsedQueueConfig): void {
+    this.applyOptions(options);
+  }
+
+  private applyOptions(options: ParsedQueueConfig): void {
+    this.options = options;
+    this.rebuildQueueConfigs();
+  }
+
+  private rebuildQueueConfigs(): void {
+    this.queueConfigs.clear();
+    const configured = this.options.queues;
+    this.queueConfigs.set("default", this.resolveConfig(configured.default));
+    for (const [name, cfg] of Object.entries(configured)) {
+      if (name === "default") continue;
+      this.queueConfigs.set(name, this.resolveConfig(cfg));
+    }
+  }
+
+  private resolveConfig(cfg?: {
+    agentType?: string | undefined;
+    concurrency?: number | undefined;
+    maxSize?: number | null | undefined;
+    maxResults?: number | null | undefined;
+  }): QueueConfig {
+    return {
+      agentType: cfg?.agentType ?? this.options.defaultAgentType,
+      concurrency: cfg?.concurrency ?? this.options.defaultConcurrency,
+      maxSize: cfg?.maxSize ?? null,
+      maxResults: cfg?.maxResults ?? this.options.maxResults,
+    };
   }
 
   private state(): QueueState {
     return this.app.stateManager.getState(QueueState);
   }
 
-  private requireQueue(queueName: string): QueueData {
-    const data = this.state().queues.get(queueName);
-    if (!data) throw new ConfigurationError(this.name, `Queue "${queueName}" does not exist`);
-    return data;
+  private requireConfig(queueName: string): QueueConfig {
+    const config = this.queueConfigs.get(queueName);
+    if (!config) throw new ConfigurationError(this.name, `Queue "${queueName}" does not exist`);
+    return config;
+  }
+
+  /** Runtime bucket for a known queue; created on first write if missing. */
+  private runtime(queueName: string): QueueRuntimeData {
+    this.requireConfig(queueName);
+    const existing = this.state().queues.get(queueName);
+    if (existing) return existing;
+    return this.app.stateManager.mutateState(QueueState, s => s.ensureQueue(queueName));
   }
 
   // ---------------------------------------------------------------------------
@@ -55,26 +110,18 @@ export default class QueueService implements TokenRingService {
   // ---------------------------------------------------------------------------
 
   getQueueNames(): string[] {
-    return this.state().queues.keysArray();
+    return [...this.queueConfigs.keys()];
   }
 
   getQueueConfig(name: string): QueueConfig | undefined {
-    return this.state().queues.get(name)?.config;
+    return this.queueConfigs.get(name);
   }
 
   createQueue(name: string, config: { agentType: string; concurrency?: number; maxSize?: number | null; maxResults?: number | null }): void {
-    if (this.state().queues.has(name)) {
+    if (this.queueConfigs.has(name)) {
       throw new ConfigurationError(this.name, `Queue "${name}" already exists`);
     }
-    const resolved: QueueConfig = {
-      agentType: config.agentType,
-      concurrency: config.concurrency ?? this.options.defaultConcurrency,
-      maxSize: config.maxSize ?? null,
-      maxResults: config.maxResults ?? this.options.maxResults,
-    };
-    this.app.stateManager.mutateState(QueueState, s => {
-      s.queues.set(name, { config: resolved, items: [], results: [] });
-    });
+    this.queueConfigs.set(name, this.resolveConfig(config));
   }
 
   // ---------------------------------------------------------------------------
@@ -82,10 +129,11 @@ export default class QueueService implements TokenRingService {
   // ---------------------------------------------------------------------------
 
   enqueue(queueName: string, item: NewItemInput): QueueItem {
-    const data = this.requireQueue(queueName);
+    const config = this.requireConfig(queueName);
+    const data = this.runtime(queueName);
     const pendingCount = data.items.filter(i => i.status === "pending").length;
-    if (data.config.maxSize !== null && pendingCount >= data.config.maxSize) {
-      throw new ConfigurationError(this.name, `Queue "${queueName}" is full (maxSize ${data.config.maxSize})`);
+    if (config.maxSize !== null && pendingCount >= config.maxSize) {
+      throw new ConfigurationError(this.name, `Queue "${queueName}" is full (maxSize ${config.maxSize})`);
     }
 
     const queueItem: QueueItem = {
@@ -102,32 +150,37 @@ export default class QueueService implements TokenRingService {
     };
 
     this.app.stateManager.mutateState(QueueState, s => {
-      s.queues.get(queueName)?.items.push(queueItem);
+      s.ensureQueue(queueName).items.push(queueItem);
     });
 
     return queueItem;
   }
 
   getPending(queueName: string): QueueItem[] {
-    return this.requireQueue(queueName)
-      .items.filter(i => i.status === "pending")
-      .map(i => ({ ...i }));
+    this.requireConfig(queueName);
+    const data = this.state().queues.get(queueName);
+    if (!data) return [];
+    return data.items.filter(i => i.status === "pending").map(i => ({ ...i }));
   }
 
   getRunning(queueName: string): QueueItem[] {
-    return this.requireQueue(queueName)
-      .items.filter(i => i.status === "running")
-      .map(i => ({ ...i }));
+    this.requireConfig(queueName);
+    const data = this.state().queues.get(queueName);
+    if (!data) return [];
+    return data.items.filter(i => i.status === "running").map(i => ({ ...i }));
   }
 
   getResults(queueName: string, limit = 20, status?: ResultItemStatus): ResultItem[] {
-    const data = this.requireQueue(queueName);
+    this.requireConfig(queueName);
+    const data = this.state().queues.get(queueName);
+    if (!data) return [];
     let results = [...data.results].reverse();
     if (status) results = results.filter(r => r.status === status);
     return results.slice(0, limit).map(r => ({ ...r }));
   }
 
   removeItem(queueName: string, itemId: string): boolean {
+    this.requireConfig(queueName);
     return this.app.stateManager.mutateState(QueueState, s => {
       const queue = s.queues.get(queueName);
       if (!queue) return false;
@@ -156,6 +209,7 @@ export default class QueueService implements TokenRingService {
   }
 
   clear(queueName: string): number {
+    this.requireConfig(queueName);
     return this.app.stateManager.mutateState(QueueState, s => {
       const queue = s.queues.get(queueName);
       if (!queue) return 0;
@@ -166,6 +220,7 @@ export default class QueueService implements TokenRingService {
   }
 
   private finalizeItem(queueName: string, itemId: string, status: ResultItemStatus, message: string): void {
+    const maxResults = this.queueConfigs.get(queueName)?.maxResults ?? this.options.maxResults;
     this.app.stateManager.mutateState(QueueState, s => {
       const queue = s.queues.get(queueName);
       if (!queue) return;
@@ -193,9 +248,8 @@ export default class QueueService implements TokenRingService {
       queue.items.splice(idx, 1);
       queue.results.push(result);
 
-      const max = queue.config.maxResults;
-      if (queue.results.length > max) {
-        queue.results.splice(0, queue.results.length - max);
+      if (queue.results.length > maxResults) {
+        queue.results.splice(0, queue.results.length - maxResults);
       }
     });
   }
@@ -226,13 +280,15 @@ export default class QueueService implements TokenRingService {
     type Pending = { queueName: string; config: QueueConfig; items: QueueItem[] };
     const work: Pending[] = [];
 
-    for (const [queueName, data] of snapshot.queues) {
+    for (const [queueName, config] of this.queueConfigs) {
+      const data = snapshot.queues.get(queueName);
+      if (!data) continue;
       const runningCount = data.items.filter(i => i.status === "running").length;
-      const slots = data.config.concurrency - runningCount;
+      const slots = config.concurrency - runningCount;
       if (slots <= 0) continue;
       const pending = data.items.filter(i => i.status === "pending").slice(0, slots);
       if (pending.length > 0) {
-        work.push({ queueName, config: data.config, items: pending });
+        work.push({ queueName, config, items: pending });
       }
     }
 

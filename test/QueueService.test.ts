@@ -310,16 +310,8 @@ describe("QueueService", () => {
 
   describe("persistence", () => {
     it("resets running items to pending on restore", () => {
-      const baseConfig: ParsedQueueConfig = {
-        defaultAgentType: "code",
-        defaultConcurrency: 1,
-        maxResults: 100,
-        pollIntervalMs: 500,
-        queues: {},
-      };
-
-      const state = new QueueState(baseConfig);
-      state.queues.get("default")!.items.push({
+      const state = new QueueState();
+      state.ensureQueue("default").items.push({
         id: "x",
         queueName: "default",
         name: "running-task",
@@ -332,7 +324,7 @@ describe("QueueService", () => {
         requestId: "r",
       });
 
-      const restored = new QueueState(baseConfig);
+      const restored = new QueueState();
       restored.deserialize(state.serialize());
 
       const items = restored.queues.get("default")!.items;
@@ -341,17 +333,9 @@ describe("QueueService", () => {
       expect(items[0]?.agentId).toBeNull();
     });
 
-    it("trims results to maxResults on restore", () => {
-      const baseConfig = (maxResults: number): ParsedQueueConfig => ({
-        defaultAgentType: "code",
-        defaultConcurrency: 1,
-        maxResults,
-        pollIntervalMs: 500,
-        queues: {},
-      });
-
-      const state = new QueueState(baseConfig(2));
-      const results = state.queues.get("default")!.results;
+    it("restores results without embedding config in state", () => {
+      const state = new QueueState();
+      const results = state.ensureQueue("default").results;
       for (let i = 0; i < 5; i++) {
         results.push({
           id: `r${i}`,
@@ -370,9 +354,32 @@ describe("QueueService", () => {
         });
       }
 
-      const restored = new QueueState(baseConfig(2));
-      restored.deserialize(state.serialize());
-      expect(restored.queues.get("default")!.results).toHaveLength(2);
+      const serialized = state.serialize();
+      expect(serialized.queues.default).not.toHaveProperty("config");
+
+      const restored = new QueueState();
+      restored.deserialize(serialized);
+      expect(restored.queues.get("default")!.results).toHaveLength(5);
+    });
+
+    it("reconfigure updates queue definitions without mutating state", () => {
+      const { queueService } = setup(app);
+      const stateBefore = app.stateManager.getState(QueueState);
+      const queuesRef = stateBefore.queues;
+
+      queueService.reconfigure({
+        defaultAgentType: "research",
+        defaultConcurrency: 3,
+        maxResults: 50,
+        pollIntervalMs: 10,
+        queues: { docs: { agentType: "code", concurrency: 2 } },
+      });
+
+      expect(queueService.getQueueConfig("default")?.agentType).toBe("research");
+      expect(queueService.getQueueConfig("default")?.concurrency).toBe(3);
+      expect(queueService.getQueueConfig("docs")?.concurrency).toBe(2);
+      // State map identity unchanged — reconfigure only touched service-owned config
+      expect(app.stateManager.getState(QueueState).queues).toBe(queuesRef);
     });
   });
 });

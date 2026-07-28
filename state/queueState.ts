@@ -1,8 +1,7 @@
 import { AppStateSlice } from "@tokenring-ai/app/types";
 import EnhancedMap from "@tokenring-ai/utility/map/enhancedMap";
 import { z } from "zod";
-import type { ParsedQueueConfig, QueueConfig } from "../schema.ts";
-import { QueueConfigSchema } from "../schema.ts";
+import type { QueueConfig } from "../schema.ts";
 
 export const QueueItemStatusSchema = z.enum(["pending", "running"]);
 export type QueueItemStatus = z.output<typeof QueueItemStatusSchema>;
@@ -37,95 +36,72 @@ export const ResultItemSchema = z.object({
 });
 export type ResultItem = z.output<typeof ResultItemSchema>;
 
+/** Runtime data for one named queue. Config lives on {@link QueueService}, not here. */
+export type QueueRuntimeData = {
+  items: QueueItem[];
+  results: ResultItem[];
+};
+
+/**
+ * Wire/UI projection of a queue, including the service-owned config snapshot.
+ * Not stored in app state.
+ */
 export type QueueData = {
   config: QueueConfig;
   items: QueueItem[];
   results: ResultItem[];
 };
 
-export const QueueDataSchema = z.object({
-  config: QueueConfigSchema,
+const QueueRuntimeSchema = z.object({
   items: z.array(QueueItemSchema),
   results: z.array(ResultItemSchema),
+  // Older checkpoints embedded config; accept and ignore it.
+  config: z.unknown().optional(),
 });
 
 const serializationSchema = z.object({
-  queues: z.record(z.string(), QueueDataSchema),
+  queues: z.record(z.string(), QueueRuntimeSchema),
 });
 
 /**
- * App-level state slice holding every queue's configuration, pending/running items, and the
- * bounded history of recently completed results.
+ * App-level state for queue runtime only: pending/running items and completed results.
  *
- * Queue *definitions* (name + config) are sourced from the service config at construction time.
- * The runtime data (items + results) is what gets persisted and restored: on restore, any item
- * that was `running` is reset to `pending` so it re-dispatches, and `results` are trimmed to the
- * queue's `maxResults`.
+ * Queue *definitions* (agent type, concurrency, limits) live on {@link QueueService}
+ * and are never persisted in this slice.
  */
 export class QueueState extends AppStateSlice<typeof serializationSchema> {
-  queues = new EnhancedMap<string, QueueData>();
+  queues = new EnhancedMap<string, QueueRuntimeData>();
 
-  constructor(private readonly options: ParsedQueueConfig) {
+  constructor(_props: Record<string, never> = {}) {
     super("QueueState", serializationSchema);
-    this.buildQueuesFromConfig();
   }
 
-  private resolveConfig(
-    agentType: string | undefined,
-    concurrency: number | undefined,
-    maxSize: number | null | undefined,
-    maxResults: number | null | undefined,
-  ): QueueConfig {
-    return {
-      agentType: agentType ?? this.options.defaultAgentType,
-      concurrency: concurrency ?? this.options.defaultConcurrency,
-      maxSize: maxSize ?? null,
-      maxResults: maxResults ?? this.options.maxResults,
-    };
-  }
-
-  private buildQueuesFromConfig(): void {
-    this.queues = new EnhancedMap();
-
-    const configured = this.options.queues;
-    const defaultCfg = configured.default;
-
-    this.queues.set("default", {
-      config: this.resolveConfig(defaultCfg?.agentType, defaultCfg?.concurrency, defaultCfg?.maxSize, defaultCfg?.maxResults),
-      items: [],
-      results: [],
-    });
-
-    for (const [name, cfg] of Object.entries(configured)) {
-      if (name === "default") continue;
-      this.queues.set(name, {
-        config: this.resolveConfig(cfg.agentType, cfg.concurrency, cfg.maxSize, cfg.maxResults),
-        items: [],
-        results: [],
-      });
+  /** Ensures a runtime bucket exists for `name` and returns it. */
+  ensureQueue(name: string): QueueRuntimeData {
+    let data = this.queues.get(name);
+    if (!data) {
+      data = { items: [], results: [] };
+      this.queues.set(name, data);
     }
+    return data;
   }
 
   serialize(): z.output<typeof serializationSchema> {
     return {
-      queues: Object.fromEntries(this.queues.mapEntries(([name, data]) => [name, { config: data.config, items: data.items, results: data.results }])),
+      queues: Object.fromEntries(this.queues.mapEntries(([name, data]) => [name, { items: data.items, results: data.results }])),
     };
   }
 
   deserialize(data: z.output<typeof serializationSchema>): void {
-    // Rebuild queue definitions from the current config (config is the source of truth for
-    // definitions), then overlay persisted runtime data for any queues that still exist.
-    this.buildQueuesFromConfig();
+    this.queues = new EnhancedMap();
 
     for (const [name, saved] of Object.entries(data.queues)) {
-      const existing = this.queues.get(name);
-      if (!existing) continue;
-
-      existing.items = saved.items.map(item =>
-        item.status === "running" ? { ...item, status: "pending" as const, startedAt: null, agentId: null, requestId: null } : item,
-      );
-      const max = existing.config.maxResults;
-      existing.results = saved.results.slice(Math.max(0, saved.results.length - max));
+      this.queues.set(name, {
+        items: saved.items.map(item =>
+          item.status === "running" ? { ...item, status: "pending" as const, startedAt: null, agentId: null, requestId: null } : item,
+        ),
+        results: saved.results,
+      });
     }
   }
 }

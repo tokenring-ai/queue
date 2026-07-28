@@ -6,14 +6,18 @@ import type { QueueData } from "../state/queueState.ts";
 import { QueueState } from "../state/queueState.ts";
 import QueueRpcSchema from "./schema.ts";
 
-/** Project the live QueueState into a wire-safe record of queue snapshots. */
-function snapshot(state: QueueState): Record<string, QueueData> {
+/** Project service config + runtime state into a wire-safe record of queue snapshots. */
+function snapshot(app: TokenRingApp, state: QueueState): Record<string, QueueData> {
+  const queueService = app.requireService(QueueService);
   const queues: Record<string, QueueData> = {};
-  for (const [name, data] of state.queues) {
+  for (const name of queueService.getQueueNames()) {
+    const config = queueService.getQueueConfig(name);
+    if (!config) continue;
+    const data = state.queues.get(name);
     queues[name] = {
-      config: { ...data.config },
-      items: data.items.map(i => ({ ...i })),
-      results: data.results.map(r => ({ ...r })),
+      config: { ...config },
+      items: (data?.items ?? []).map(i => ({ ...i })),
+      results: (data?.results ?? []).map(r => ({ ...r })),
     };
   }
   return queues;
@@ -22,7 +26,7 @@ function snapshot(state: QueueState): Record<string, QueueData> {
 export default createRPCEndpoint(QueueRpcSchema, {
   async *streamQueues(_args, app: TokenRingApp, signal) {
     for await (const state of app.stateManager.subscribeAsync(QueueState, signal)) {
-      yield { status: "success", queues: snapshot(state) };
+      yield { status: "success", queues: snapshot(app, state) };
     }
   },
 

@@ -20,13 +20,16 @@ export default {
   displayName: "Work Queue",
   version: packageJSON.version,
   description: packageJSON.description,
-  install(app, config) {
+  install(app) {
     app.waitForService(ChatService, chatService => chatService.addTools(...tools));
     app.waitForService(AgentCommandService, agentCommandService => agentCommandService.addAgentCommands(agentCommands));
     app.waitForService(RpcService, rpcService => {
       rpcService.registerEndpoint(queueRPC);
     });
-    app.addServices(new QueueService(app, config.queue));
+    app.addServices(new QueueService(app));
+  },
+  reconfigure(app, config) {
+    app.requireService(QueueService).reconfigure(config.queue);
   },
   configSchema: packageConfigSchema,
 } satisfies TokenRingPlugin<typeof packageConfigSchema>;

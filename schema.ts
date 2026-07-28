@@ -73,6 +73,8 @@ export const QueueServiceConfigSchema = z
       .prefault({})
       .meta({ label: "Named Queues", description: "Additional queues beyond the default, keyed by name" } satisfies ConfigFieldMeta),
   })
+  .prefault({})
   .meta({ label: "Queue", description: "App-level work queue for dispatching tasks to pools of agents" } satisfies ConfigFieldMeta);
 
+export type QueueServiceConfig = z.input<typeof QueueServiceConfigSchema>;
 export type ParsedQueueConfig = z.output<typeof QueueServiceConfigSchema>;
