@@ -43,8 +43,12 @@ export default createRPCEndpoint(QueueRpcSchema, {
       });
       const position = queueService.getPending(args.queueName).length;
       return { status: "success", itemId: item.id, position, message: `Added to queue "${args.queueName}"` };
-    } catch {
-      return { status: "queueNotFound" };
+    } catch (err) {
+      // maxSize / other config errors surface as ConfigurationError; treat as not found only if gone.
+      if (!queueService.getQueueConfig(args.queueName)) {
+        return { status: "queueNotFound" };
+      }
+      throw err;
     }
   },
 
@@ -85,6 +89,10 @@ export default createRPCEndpoint(QueueRpcSchema, {
       ...(args.concurrency != null ? { concurrency: args.concurrency } : {}),
       ...(args.maxSize != null ? { maxSize: args.maxSize } : {}),
       ...(args.maxResults != null ? { maxResults: args.maxResults } : {}),
+    });
+    // Ensure a runtime bucket exists so streamQueues subscribers see the new name immediately.
+    app.stateManager.mutateState(QueueState, s => {
+      s.ensureQueue(args.name);
     });
     return { status: "success", message: `Created queue "${args.name}"` };
   },

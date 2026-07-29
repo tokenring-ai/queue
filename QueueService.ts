@@ -6,6 +6,7 @@ import { AgentEventState } from "@tokenring-ai/agent/state/agentEventState";
 import type TokenRingApp from "@tokenring-ai/app";
 import type { TokenRingService } from "@tokenring-ai/app/types";
 import { ConfigurationError } from "@tokenring-ai/app/types";
+import EnhancedStringMap from "@tokenring-ai/utility/map/enhancedStringMap";
 import { type ParsedQueueConfig, type QueueConfig, QueueServiceConfigSchema } from "./schema.ts";
 import type { QueueItem, QueueRuntimeData, ResultItem, ResultItemStatus } from "./state/queueState.ts";
 import { QueueState } from "./state/queueState.ts";
@@ -36,7 +37,7 @@ export default class QueueService implements TokenRingService {
   private isStopping = false;
   private options = QueueServiceConfigSchema.parse({});
   /** Resolved per-queue definitions, keyed by queue name. Source of truth for config. */
-  private queueConfigs = new Map<string, QueueConfig>();
+  private queueConfigs = new EnhancedStringMap<QueueConfig>();
 
   constructor(
     private readonly app: TokenRingApp,
@@ -110,7 +111,7 @@ export default class QueueService implements TokenRingService {
   // ---------------------------------------------------------------------------
 
   getQueueNames(): string[] {
-    return [...this.queueConfigs.keys()];
+    return this.queueConfigs.keysArray();
   }
 
   getQueueConfig(name: string): QueueConfig | undefined {
