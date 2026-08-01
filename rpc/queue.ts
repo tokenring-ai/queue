@@ -39,7 +39,6 @@ export default createRPCEndpoint(QueueRpcSchema, {
       const item = queueService.enqueue(args.queueName, {
         name: args.name,
         input: args.input,
-        from: args.from ?? "ui",
       });
       const position = queueService.getPending(args.queueName).length;
       return { status: "success", itemId: item.id, position, message: `Added to queue "${args.queueName}"` };

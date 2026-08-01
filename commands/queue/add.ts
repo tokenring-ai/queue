@@ -29,7 +29,10 @@ export default {
     const queueService = agent.requireService(QueueService);
     const queueName = args.queue || "default";
 
-    const item = queueService.enqueue(queueName, { name: remainder, input: remainder, from: `user:${agent.id}` });
+    const item = queueService.enqueue(queueName, {
+      name: remainder,
+      input: { from: `user:${agent.id}`, message: remainder },
+    });
     const pending = queueService.getPending(queueName);
 
     return `Added to queue "${queueName}" (id: ${item.id}). Position: ${pending.length}.`;

@@ -1,3 +1,4 @@
+import { InputMessageSchema } from "@tokenring-ai/agent/AgentEvents";
 import { AppStateSlice } from "@tokenring-ai/app/types";
 import EnhancedMap from "@tokenring-ai/utility/map/enhancedMap";
 import { z } from "zod";
@@ -13,8 +14,8 @@ const queueItemBase = {
   id: z.string(),
   queueName: z.string(),
   name: z.string(),
-  input: z.string(),
-  from: z.string(),
+  /** Complete agent input message (text + optional attachments) delivered when the item runs. */
+  input: InputMessageSchema,
   createdAt: z.number(),
   startedAt: z.number().nullish(),
   agentId: z.string().nullish(),

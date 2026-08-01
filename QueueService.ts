@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { setTimeout as delay } from "node:timers/promises";
 import { AgentManager } from "@tokenring-ai/agent";
 import type Agent from "@tokenring-ai/agent/Agent";
+import type { InputMessage } from "@tokenring-ai/agent/AgentEvents";
 import { AgentEventState } from "@tokenring-ai/agent/state/agentEventState";
 import type TokenRingApp from "@tokenring-ai/app";
 import type { TokenRingService } from "@tokenring-ai/app/types";
@@ -15,8 +16,8 @@ type RunningItem = { agentId: string; requestId: string };
 
 type NewItemInput = {
   name: string;
-  input: string;
-  from: string;
+  /** Complete agent input message (not a bare prompt string). */
+  input: InputMessage;
 };
 
 /**
@@ -142,7 +143,6 @@ export default class QueueService implements TokenRingService {
       queueName,
       name: item.name,
       input: item.input,
-      from: item.from,
       status: "pending",
       createdAt: Date.now(),
       startedAt: null,
@@ -235,7 +235,6 @@ export default class QueueService implements TokenRingService {
         queueName: item.queueName,
         name: item.name,
         input: item.input,
-        from: item.from,
         createdAt: item.createdAt,
         startedAt: item.startedAt ?? null,
         agentId: item.agentId ?? null,
@@ -314,7 +313,7 @@ export default class QueueService implements TokenRingService {
 
     try {
       agent = agentManager.spawnAgent({ agentType: config.agentType, headless: true });
-      requestId = agent.handleInput({ from: `queue:${queueName}:${item.id}`, message: item.input });
+      requestId = agent.handleInput(item.input);
 
       this.running.set(item.id, { agentId: agent.id, requestId });
       this.app.mutateState(QueueState, s => {

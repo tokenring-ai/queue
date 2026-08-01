@@ -1,3 +1,4 @@
+import { InputMessageSchema } from "@tokenring-ai/agent/AgentEvents";
 import type { RPCSchema } from "@tokenring-ai/rpc/types";
 import { SuccessSchema } from "@tokenring-ai/rpc/types";
 import { z } from "zod";
@@ -38,8 +39,7 @@ export default {
       input: z.object({
         queueName: z.string(),
         name: z.string(),
-        input: z.string(),
-        from: z.string().optional(),
+        input: InputMessageSchema,
       }),
       result: z.discriminatedUnion("status", [
         SuccessSchema.extend({

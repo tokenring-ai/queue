@@ -36,10 +36,15 @@ class FakeAgent {
     this.sm.initializeState(AgentEventState, {});
   }
 
-  handleInput(input: { from: string; message: string }): string {
+  handleInput(input: { from: string; message: string; attachments?: unknown[] }): string {
     const requestId = `req-${nextId()}`;
     this.sm.mutateState(AgentEventState, s =>
-      s.emit({ type: "input.received", timestamp: Date.now(), input: { from: input.from, message: input.message }, requestId }),
+      s.emit({
+        type: "input.received",
+        timestamp: Date.now(),
+        input: { from: input.from, message: input.message, ...(input.attachments ? { attachments: input.attachments as any } : {}) },
+        requestId,
+      }),
     );
 
     this.timer = setTimeout(() => {
@@ -163,36 +168,36 @@ describe("QueueService", () => {
   describe("enqueue", () => {
     it("adds pending items and reports them via getPending", () => {
       const { queueService } = setup(app);
-      const item = queueService.enqueue("default", { name: "task", input: "do it", from: "test" });
+      const item = queueService.enqueue("default", { name: "task", input: { from: "test", message: "do it" } });
       expect(item.status).toBe("pending");
       expect(queueService.getPending("default")).toHaveLength(1);
     });
 
     it("respects maxSize", () => {
       const { queueService } = setup(app, { queues: { default: { agentType: "code", maxSize: 2 } } });
-      queueService.enqueue("default", { name: "a", input: "a", from: "t" });
-      queueService.enqueue("default", { name: "b", input: "b", from: "t" });
-      expect(() => queueService.enqueue("default", { name: "c", input: "c", from: "t" })).toThrow();
+      queueService.enqueue("default", { name: "a", input: { from: "t", message: "a" } });
+      queueService.enqueue("default", { name: "b", input: { from: "t", message: "b" } });
+      expect(() => queueService.enqueue("default", { name: "c", input: { from: "t", message: "c" } })).toThrow();
     });
 
     it("throws when enqueueing to an unknown queue", () => {
       const { queueService } = setup(app);
-      expect(() => queueService.enqueue("nope", { name: "a", input: "a", from: "t" })).toThrow();
+      expect(() => queueService.enqueue("nope", { name: "a", input: { from: "t", message: "a" } })).toThrow();
     });
   });
 
   describe("remove / clear", () => {
     it("removes a pending item by id", () => {
       const { queueService } = setup(app);
-      const item = queueService.enqueue("default", { name: "a", input: "a", from: "t" });
+      const item = queueService.enqueue("default", { name: "a", input: { from: "t", message: "a" } });
       expect(queueService.removeItem("default", item.id)).toBe(true);
       expect(queueService.getPending("default")).toHaveLength(0);
     });
 
     it("clears all pending items", () => {
       const { queueService } = setup(app);
-      queueService.enqueue("default", { name: "a", input: "a", from: "t" });
-      queueService.enqueue("default", { name: "b", input: "b", from: "t" });
+      queueService.enqueue("default", { name: "a", input: { from: "t", message: "a" } });
+      queueService.enqueue("default", { name: "b", input: { from: "t", message: "b" } });
       expect(queueService.clear("default")).toBe(2);
       expect(queueService.getPending("default")).toHaveLength(0);
     });
@@ -204,7 +209,7 @@ describe("QueueService", () => {
       const { queueService } = setup(app, { defaultConcurrency: 2 });
 
       for (let i = 0; i < 5; i++) {
-        queueService.enqueue("default", { name: `t${i}`, input: "x", from: "t" });
+        queueService.enqueue("default", { name: `t${i}`, input: { from: "t", message: "x" } });
       }
 
       (queueService as any).dispatchPending(abortController.signal);
@@ -219,7 +224,7 @@ describe("QueueService", () => {
       const fake = installFakeAgentManager(app);
       const { queueService } = setup(app, { defaultConcurrency: 1 });
 
-      queueService.enqueue("default", { name: "task", input: "do", from: "test" });
+      queueService.enqueue("default", { name: "task", input: { from: "test", message: "do" } });
       (queueService as any).dispatchPending(abortController.signal);
 
       expect(queueService.getRunning("default")).toHaveLength(1);
@@ -238,7 +243,7 @@ describe("QueueService", () => {
       const fake = installFakeAgentManager(app);
       const { queueService } = setup(app, { defaultConcurrency: 1 });
 
-      queueService.enqueue("default", { name: "task", input: "do", from: "test" });
+      queueService.enqueue("default", { name: "task", input: { from: "test", message: "do" } });
       (queueService as any).dispatchPending(abortController.signal);
 
       expect(fake.spawned).toHaveLength(1);
@@ -256,7 +261,7 @@ describe("QueueService", () => {
       const { queueService } = setup(app, { defaultConcurrency: 1, pollIntervalMs: 5 });
 
       for (let i = 0; i < 3; i++) {
-        queueService.enqueue("default", { name: `t${i}`, input: "x", from: "t" });
+        queueService.enqueue("default", { name: `t${i}`, input: { from: "t", message: "x" } });
       }
 
       for (let i = 0; i < 50 && queueService.getResults("default").length < 3; i++) {
@@ -277,7 +282,7 @@ describe("QueueService", () => {
       });
 
       for (let i = 0; i < 4; i++) {
-        queueService.enqueue("default", { name: `t${i}`, input: "x", from: "t" });
+        queueService.enqueue("default", { name: `t${i}`, input: { from: "t", message: "x" } });
       }
 
       for (let i = 0; i < 80 && queueService.getResults("default", 100).length < 2; i++) {
@@ -292,7 +297,7 @@ describe("QueueService", () => {
       const fake = installFakeAgentManager(app);
       const { queueService } = setup(app, { defaultConcurrency: 1 });
 
-      queueService.enqueue("default", { name: "task", input: "do", from: "test" });
+      queueService.enqueue("default", { name: "task", input: { from: "test", message: "do" } });
       (queueService as any).dispatchPending(abortController.signal);
 
       const running = queueService.getRunning("default");
@@ -315,8 +320,7 @@ describe("QueueService", () => {
         id: "x",
         queueName: "default",
         name: "running-task",
-        input: "do",
-        from: "t",
+        input: { from: "t", message: "do" },
         status: "running",
         createdAt: 1,
         startedAt: 2,
@@ -341,8 +345,7 @@ describe("QueueService", () => {
           id: `r${i}`,
           queueName: "default",
           name: "n",
-          input: "i",
-          from: "t",
+          input: { from: "t", message: "i" },
           createdAt: 0,
           startedAt: null,
           agentId: null,

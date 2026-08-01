@@ -33,7 +33,10 @@ function execute({ queueName, description, content }: z.output<typeof inputSchem
   const queueService = agent.requireService(QueueService);
   const queue = queueName?.trim() || "default";
 
-  const item = queueService.enqueue(queue, { name: description, input: content, from: `agent:${agent.id}` });
+  const item = queueService.enqueue(queue, {
+    name: description,
+    input: { from: `agent:${agent.id}`, message: content },
+  });
 
   agent.infoMessage(`[${name}] Added task "${description}" to queue "${queue}"`);
 
