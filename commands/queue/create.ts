@@ -33,9 +33,9 @@ export default {
 /queue create research --type research --concurrency 2
 /queue create docs --type code`,
   inputSchema,
-  execute: ({ args, positionals, agent }: AgentCommandInputType<typeof inputSchema>): string => {
-    const queueService = agent.requireServiceByType(QueueService);
-    const name = positionals.name;
+  execute: ({ args, agent }: AgentCommandInputType<typeof inputSchema>): string => {
+    const queueService = agent.requireService(QueueService);
+    const name = args.name;
     const agentType = args.type;
     const concurrency = args.concurrency ?? 1;
 

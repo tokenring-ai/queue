@@ -25,7 +25,7 @@ function snapshot(app: TokenRingApp, state: QueueState): Record<string, QueueDat
 
 export default createRPCEndpoint(QueueRpcSchema, {
   async *streamQueues(_args, app: TokenRingApp, signal) {
-    for await (const state of app.stateManager.subscribeAsync(QueueState, signal)) {
+    for await (const state of app.subscribeStateAsync(QueueState, signal)) {
       yield { status: "success", queues: snapshot(app, state) };
     }
   },
@@ -91,7 +91,7 @@ export default createRPCEndpoint(QueueRpcSchema, {
       ...(args.maxResults != null ? { maxResults: args.maxResults } : {}),
     });
     // Ensure a runtime bucket exists so streamQueues subscribers see the new name immediately.
-    app.stateManager.mutateState(QueueState, s => {
+    app.mutateState(QueueState, s => {
       s.ensureQueue(args.name);
     });
     return { status: "success", message: `Created queue "${args.name}"` };

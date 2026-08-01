@@ -21,12 +21,12 @@ export default {
   version: packageJSON.version,
   description: packageJSON.description,
   install(app) {
-    app.waitForService(ChatService, chatService => chatService.addTools(...tools));
+    app.waitForService(ChatService, chatService => chatService.addTools(tools));
     app.waitForService(AgentCommandService, agentCommandService => agentCommandService.addAgentCommands(agentCommands));
     app.waitForService(RpcService, rpcService => {
       rpcService.registerEndpoint(queueRPC);
     });
-    app.addServices(new QueueService(app));
+    app.addService(new QueueService(app));
   },
   reconfigure(app, config) {
     app.requireService(QueueService).reconfigure(config.queue);

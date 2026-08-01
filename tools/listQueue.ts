@@ -13,7 +13,7 @@ const inputSchema = z.object({
 });
 
 function execute({ queueName, includeRunning }: z.output<typeof inputSchema>, agent: Agent): TokenRingToolResult {
-  const queueService = agent.requireServiceByType(QueueService);
+  const queueService = agent.requireService(QueueService);
   const queue = queueName?.trim() || "default";
 
   const pending = queueService.getPending(queue);

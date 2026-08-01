@@ -21,7 +21,7 @@ export default {
 /queue clear --queue research`,
   inputSchema,
   execute: ({ args, agent }: AgentCommandInputType<typeof inputSchema>): string => {
-    const queueService = agent.requireServiceByType(QueueService);
+    const queueService = agent.requireService(QueueService);
     const queueName = args.queue || "default";
 
     const removed = queueService.clear(queueName);

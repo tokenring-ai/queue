@@ -26,7 +26,7 @@ export default {
 /queue add --queue research Summarize the latest findings on topic X`,
   inputSchema,
   execute: ({ args, remainder, agent }: AgentCommandInputType<typeof inputSchema>): string => {
-    const queueService = agent.requireServiceByType(QueueService);
+    const queueService = agent.requireService(QueueService);
     const queueName = args.queue || "default";
 
     const item = queueService.enqueue(queueName, { name: remainder, input: remainder, from: `user:${agent.id}` });

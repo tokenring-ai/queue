@@ -74,7 +74,7 @@ class FakeAgent {
  */
 function installFakeAgentManager(app: TokenRingApp) {
   const agentManager = new AgentManager(app);
-  app.addServices(agentManager);
+  app.addService(agentManager);
 
   const live = new Map<string, FakeAgent>();
   const spawned: FakeAgent[] = [];
@@ -111,7 +111,7 @@ function setup(app: TokenRingApp, options?: Partial<ParsedQueueConfig>) {
     ...options,
   };
   const queueService = new QueueService(app, config);
-  app.addServices(queueService);
+  app.addService(queueService);
   return { queueService };
 }
 
@@ -364,7 +364,7 @@ describe("QueueService", () => {
 
     it("reconfigure updates queue definitions without mutating state", () => {
       const { queueService } = setup(app);
-      const stateBefore = app.stateManager.getState(QueueState);
+      const stateBefore = app.getState(QueueState);
       const queuesRef = stateBefore.queues;
 
       queueService.reconfigure({
@@ -379,7 +379,7 @@ describe("QueueService", () => {
       expect(queueService.getQueueConfig("default")?.concurrency).toBe(3);
       expect(queueService.getQueueConfig("docs")?.concurrency).toBe(2);
       // State map identity unchanged — reconfigure only touched service-owned config
-      expect(app.stateManager.getState(QueueState).queues).toBe(queuesRef);
+      expect(app.getState(QueueState).queues).toBe(queuesRef);
     });
   });
 });

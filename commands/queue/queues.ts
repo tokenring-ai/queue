@@ -14,7 +14,7 @@ export default {
 /queue queues`,
   inputSchema,
   execute: ({ agent }: AgentCommandInputType<typeof inputSchema>): string => {
-    const queueService = agent.requireServiceByType(QueueService);
+    const queueService = agent.requireService(QueueService);
     const names = queueService.getQueueNames();
 
     if (names.length === 0) {

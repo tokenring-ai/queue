@@ -30,7 +30,7 @@ const inputSchema = z
   });
 
 function execute({ queueName, description, content }: z.output<typeof inputSchema>, agent: Agent): TokenRingToolResult {
-  const queueService = agent.requireServiceByType(QueueService);
+  const queueService = agent.requireService(QueueService);
   const queue = queueName?.trim() || "default";
 
   const item = queueService.enqueue(queue, { name: description, input: content, from: `agent:${agent.id}` });

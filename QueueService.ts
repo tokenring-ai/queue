@@ -43,7 +43,7 @@ export default class QueueService implements TokenRingService {
     private readonly app: TokenRingApp,
     options?: ParsedQueueConfig,
   ) {
-    this.app.stateManager.initializeState(QueueState, {});
+    this.app.initializeState(QueueState, {});
     if (options) {
       this.applyOptions(options);
     } else {
@@ -89,7 +89,7 @@ export default class QueueService implements TokenRingService {
   }
 
   private state(): QueueState {
-    return this.app.stateManager.getState(QueueState);
+    return this.app.getState(QueueState);
   }
 
   private requireConfig(queueName: string): QueueConfig {
@@ -103,7 +103,7 @@ export default class QueueService implements TokenRingService {
     this.requireConfig(queueName);
     const existing = this.state().queues.get(queueName);
     if (existing) return existing;
-    return this.app.stateManager.mutateState(QueueState, s => s.ensureQueue(queueName));
+    return this.app.mutateState(QueueState, s => s.ensureQueue(queueName));
   }
 
   // ---------------------------------------------------------------------------
@@ -150,7 +150,7 @@ export default class QueueService implements TokenRingService {
       requestId: null,
     };
 
-    this.app.stateManager.mutateState(QueueState, s => {
+    this.app.mutateState(QueueState, s => {
       s.ensureQueue(queueName).items.push(queueItem);
     });
 
@@ -182,7 +182,7 @@ export default class QueueService implements TokenRingService {
 
   removeItem(queueName: string, itemId: string): boolean {
     this.requireConfig(queueName);
-    return this.app.stateManager.mutateState(QueueState, s => {
+    return this.app.mutateState(QueueState, s => {
       const queue = s.queues.get(queueName);
       if (!queue) return false;
       const idx = queue.items.findIndex(i => i.id === itemId && i.status === "pending");
@@ -211,7 +211,7 @@ export default class QueueService implements TokenRingService {
 
   clear(queueName: string): number {
     this.requireConfig(queueName);
-    return this.app.stateManager.mutateState(QueueState, s => {
+    return this.app.mutateState(QueueState, s => {
       const queue = s.queues.get(queueName);
       if (!queue) return 0;
       const before = queue.items.length;
@@ -222,7 +222,7 @@ export default class QueueService implements TokenRingService {
 
   private finalizeItem(queueName: string, itemId: string, status: ResultItemStatus, message: string): void {
     const maxResults = this.queueConfigs.get(queueName)?.maxResults ?? this.options.maxResults;
-    this.app.stateManager.mutateState(QueueState, s => {
+    this.app.mutateState(QueueState, s => {
       const queue = s.queues.get(queueName);
       if (!queue) return;
       const idx = queue.items.findIndex(i => i.id === itemId);
@@ -296,7 +296,7 @@ export default class QueueService implements TokenRingService {
     for (const { queueName, config, items } of work) {
       for (const item of items) {
         const startedAt = Date.now();
-        this.app.stateManager.mutateState(QueueState, s => {
+        this.app.mutateState(QueueState, s => {
           const it = s.queues.get(queueName)?.items.find(i => i.id === item.id);
           if (it && it.status === "pending") {
             it.status = "running";
@@ -317,7 +317,7 @@ export default class QueueService implements TokenRingService {
       requestId = agent.handleInput({ from: `queue:${queueName}:${item.id}`, message: item.input });
 
       this.running.set(item.id, { agentId: agent.id, requestId });
-      this.app.stateManager.mutateState(QueueState, s => {
+      this.app.mutateState(QueueState, s => {
         const it = s.queues.get(queueName)?.items.find(i => i.id === item.id);
         if (it) {
           it.agentId = agent!.id;

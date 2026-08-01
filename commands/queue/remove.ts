@@ -28,11 +28,11 @@ export default {
 /queue list
 /queue remove 2`,
   inputSchema,
-  execute: ({ args, positionals, agent }: AgentCommandInputType<typeof inputSchema>): string => {
-    const queueService = agent.requireServiceByType(QueueService);
+  execute: ({ args, agent }: AgentCommandInputType<typeof inputSchema>): string => {
+    const queueService = agent.requireService(QueueService);
     const queueName = args.queue || "default";
 
-    const position = Number.parseInt(positionals.position, 10);
+    const position = Number.parseInt(args.position, 10);
     if (!Number.isFinite(position) || position < 1) {
       throw new CommandFailedError("Position must be a positive number (see /queue list)");
     }
